@@ -1,0 +1,517 @@
+.banner{
+    background-color: #d7d7d7d7;
+    width: 100%;
+    padding: 2vw 0vw;
+    height: 30vw;
+    display: flex;
+    justify-items: center;
+
+}
+.banner ul{
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+}
+.banner:hover ul li.active,
+.banner:hover ul:hover li.active,
+.banner ul li{
+    position: relative;
+    width: fit-content;
+    list-style: none;
+    transition: all .5s ease-in;
+    transform: scale(.8 );
+    filter:  opacity(50%);
+    margin: 0rem;
+}
+.banner:hover ul:hover li.active:hover,
+.banner ul li.active,
+.banner ul li:hover{
+    transform: scale(1.3);
+    margin: 2rem;
+    filter:  opacity(100%);
+}
+.banner ul:hover li.active{
+    transform: scale(1.3);
+    margin: 2rem;
+    filter:  opacity(100%);
+}
+.banner ul:hover li::after,
+.banner li::after{
+    content: '+';
+    position: absolute;
+    width: 1rem;
+    height: 1rem;
+    bottom: 1vw;
+    right: 1vw;
+    z-index: 10;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--c-primary);
+    border-radius: 50%;
+    border: solid 2px var(--c-primary);
+    transition: all .5s ease-in;
+}
+.banner:hover li:hover::after,
+.banner li.active::after{
+    background-color: var(--c-primary);
+    color: white;
+    border: solid 2px var(--c-primary);
+}
+.banner ul li img{
+    width: 100%;
+}
+
+
+.contents {
+    margin: 5rem var(--m-border);
+    display: flex;
+}
+.contents .description{
+    width: 100%;
+    margin-left: 10%;
+}
+.contents .types{
+    float: right;
+    display: flex;
+}
+.contents .types a{
+    color: white;
+    text-decoration: none;
+    font-size: 1.2rem;
+    border: solid 2px #D7DBDD;
+    background-color: #D7DBDD;
+    padding: .5rem 1.5rem;
+    margin-left: 1rem;
+    display: block;
+    width: 6rem;
+    text-align: center;
+    font-style: italic;
+    font-weight: bold;
+}
+.contents .types a.active-type{
+    color: var(--c-primary);
+    text-decoration: none;
+    font-size: 1.2rem;
+    border: solid 2px var(--c-primary);
+    padding: .5rem 1.5rem;
+    margin-left: 1rem;
+    display: block;
+    width: 6rem;
+    background-color: transparent;
+    text-align: center;
+}
+
+.contents .title{
+    margin-top: 2rem;
+    display: flex;
+    align-items: flex-end;
+}
+.contents .title .name {
+    margin-right: 1.5rem;
+}
+.contents .title .name h2{
+    font-size: 3rem;
+    color: var(--c-text-inactive);
+    height: fit-content;
+}
+.contents .title .version h2{
+    font-size: 6rem;
+    color: var(--c-primary);
+    margin: 0;
+}
+.contents .title .values {
+    margin-left: 1rem;
+    margin-bottom: 2rem;
+}
+.contents .title .values h3{
+    font-size: 2rem;
+    color: var(--c-primary);
+    margin: 0;
+}
+.contents .title .values p{
+    font-size: 1rem;
+    color: var(--c-text-inactive);
+    text-align: right;
+}
+.prices {
+    display: flex;
+    justify-content: space-between;
+}
+.prices .mensual,
+.prices .price{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.prices h4{
+    font-size: 1rem;
+    color: var(--c-primary);
+    margin-bottom: 0;
+    padding-right: 1rem;
+}
+.prices .price .arrow{
+    height: 1.5rem;
+    margin-right: 1rem;
+}
+.prices .price .arrow img{
+    height: 100%;
+}
+.prices .data{
+    background-color: var(--c-primary);
+    color: white;
+    padding: .0rem 1.5rem;
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: flex-start;
+    margin-right: 1rem;
+}
+.prices .data span{
+    font-size: 1rem;
+    margin-left: .5rem;
+}
+.prices .mensual{
+    border-bottom: solid 5px var(--c-primary);
+}
+.description .desc{
+    width: 70%;
+    margin-top: 2rem;
+    color: var(--c-text-inactive);
+    line-height: 25px;
+}
+.desc#txt .txt-mt, .desc#txt .txt-ctv{
+    display: none;
+}
+.desc.mt#txt .txt-mt, .desc.ctv#txt .txt-ctv{
+    display: inline;
+}
+.description .certificate{
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4rem;
+}
+.description .certificate img{
+    height: 5rem;
+}
+.color {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+.color .content-image img{
+    display: none;
+}
+.color .content-image .active-color{
+    display: initial;
+}
+.color .colors {
+    margin: 2rem;
+    display: flex;
+    cursor: pointer;
+}
+.color .colors .color1{
+    width: 2rem;
+    height: 2rem;
+    background-color: var(--c-primary);
+    border-radius: 50%;
+    margin: 0 1rem;
+    border: solid black 1px;
+}
+.color .colors .color2{
+    width: 2rem;
+    height: 2rem;
+    background-color: white;
+    border-radius: 50%;
+    margin: 0 1rem;
+    border: solid black 1px;
+}
+.color .colors .color3{
+    width: 2rem;
+    height: 2rem;
+    background-color: var(--c-text-inactive);
+    border-radius: 50%;
+    margin: 0 1rem;
+    border: solid black 1px;
+}
+.color .colors .color4{
+    width: 2rem;
+    height: 2rem;
+    background-color: black;
+    border-radius: 50%;
+    margin: 0 1rem;
+    border: solid black 1px;
+}
+.color .colors .color5{
+    width: 2rem;
+    height: 2rem;
+    background-color: blue;
+    border-radius: 50%;
+    margin: 0 1rem;
+    border: solid black 1px;
+}
+.color .colors .color6{
+    width: 2rem;
+    height: 2rem;
+    background-color: orange;
+    border-radius: 50%;
+    margin: 0 1rem;
+    border: solid black 1px;
+}
+.dt{
+    margin: 0 var(--m-border);
+    margin-bottom: 4rem;
+}
+.dt .title{
+    display: flex;
+    justify-content: space-between;
+}
+.dt .title h2{
+    color: var(--c-text-inactive);
+    font-size: 3rem;
+
+}
+
+.dt .title h2 span{
+    color: var(--c-primary);
+    font-size: 3rem;
+}
+.dt .title a{
+    background-color: var(--c-primary);
+    color: white;
+    display: inline-block;
+    height: min-content;
+    padding: .5rem 2rem;
+}
+.data .options{
+    display: flex;
+    justify-content: space-between;
+}
+.data .options .option{
+    background-color: #D7DBDD;
+    width: 10.8%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.data .options .option.active-hdata{
+    background-color: var(--c-primary);
+}
+.data .options .option.active-hdata img{
+    filter: invert(0);
+}
+.data .options .option img{
+    padding: 2rem;
+    padding-top: 0.5rem;
+    filter: invert(0.7);
+}
+.data .options .option p{
+    text-align: center;
+    font-size: .7rem;
+}
+.data .options .option.active-hdata p{
+    color: #fff;
+}
+
+.data .list{
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 3rem;
+    flex-direction: column;
+    height: min-content;
+}
+.data .list ul{
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 var(--m-border);
+    width: 60%;
+    transform: scaleY(0);
+    height: 0;
+    transition: all ease-in .5s;
+}
+.data .list ul.active-data{
+    transform: scaleY(1);
+    height: auto;
+}
+.data .list li{
+    list-style: none;
+    display: flex;
+    width: 50%;
+    margin-top: 1rem;
+}
+.data .list li img{
+    height: 1.2rem;
+    margin-right: 1rem;
+}
+.data .list li.duo{
+    display: none;
+}
+.data.mt .duo.mt,
+.data.ctv .duo.aut{
+    display: flex;
+}
+
+.gallery__item {
+    width: 25%;
+}
+
+.tour{
+    cursor: pointer;
+    width: 100%;
+}
+.tour img{
+    width: 100%;
+    margin-top: 1rem;
+    margin-bottom: 3rem;
+}
+@media screen and (max-width: 1600px) {
+    .contents .description{
+        width: 100%;
+        margin-left: 5%;
+    }
+    .prices h4{
+        padding-right: 1rem;
+    }
+}
+@media screen and (max-width: 1150px) {
+    .contents {
+        margin: 5rem 5%;
+        display: flex;
+    }
+    .contents {
+        margin: 5rem 10%;
+        display: flex;
+        flex-direction: column;
+    }
+    .gallery{
+        align-self: center;
+    }
+    .contents .description {
+        margin-left: 0;
+        margin-top: 1rem;
+    }
+    .data .options{
+        flex-wrap: wrap;
+    }
+    .data .options .option{
+        min-width: 104px;
+    }
+}
+@media screen and (max-width: 800px) {
+    .data .list ul {
+        margin: 0 7%;
+    }
+    .contents .title .name h2{
+        font-size: 2.5rem;
+    }
+    .contents .title .version h2{
+        font-size: 5em;
+    }
+    .contents .title .values h3{
+        font-size: 1.5rem;
+    }
+    .contents .title .values p{
+        font-size: 1rem;
+    }
+    .banner ul:hover li::after,
+    .banner li::after{
+        width: .9rem;
+        height: .9rem;
+        font-size: .9rem;
+    }
+}
+@media screen and (max-width: 730px) {
+    .prices{
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    .prices .mensual{
+        width: fit-content;
+        margin-top: .5rem;
+    }
+
+    .dt{
+        margin: 0 5%;
+    }
+    .data .list ul {
+        margin: 0 5%;
+        width: 90%;
+        transform: scaleY(0);
+        height: 0;
+        transition: all ease-in .5s;
+    }
+    .banner ul:hover li::after,
+    .banner li::after{
+        width: .8rem;
+        height: .8rem;
+        font-size: .8rem;
+    }
+}
+@media screen and (max-width: 600px) {
+    .data .list li{
+        width: 100%;
+    }
+    .price{
+        margin-bottom: 2rem;
+    }
+    .banner ul:hover li::after,
+    .banner li::after{
+        width: .7rem;
+        height: .7rem;
+        font-size: .7rem;
+    }
+}
+
+@media screen and (max-width: 500px) {
+    .banner {
+        padding: 1vw 5vw;
+    }
+    .banner:hover ul:hover li.active:hover,
+    .banner ul li.active,
+    .banner ul li:hover{
+        transform: scale(1.5);
+        margin: 2rem;
+        filter:  opacity(100%);
+    }
+    .banner:hover ul li.active,
+    .banner:hover ul:hover li.active,
+    .banner ul li{
+        width: fit-content;
+        list-style: none;
+        transition: all .5s ease-in;
+        transform: scale(1);
+        filter:  opacity(50%);
+    }
+    .banner ul:hover li::after,
+    .banner li::after{
+        width: .5rem;
+        height: .5rem;
+        font-size: .5rem;
+    }
+}
+@media screen and (max-width: 400px) {
+    .banner {
+        padding: 1vw 5vw;
+    }
+    .banner:hover ul:hover li.active:hover,
+    .banner ul li.active,
+    .banner ul li:hover{
+        transform: scale(1.7);
+        margin: 2rem;
+        filter:  opacity(100%);
+    }
+    .banner:hover ul li.active,
+    .banner:hover ul:hover li.active,
+    .banner ul li{
+        width: fit-content;
+        list-style: none;
+        transition: all .5s ease-in;
+        transform: scale(.9);
+        filter:  opacity(50%);
+    }
+}

@@ -1,0 +1,1528 @@
+<?php
+require_once "../clases/mysql.class.php";
+require_once "../clases/mail.php";
+class Prospecto{
+    public $mensaje = "";
+    //******************************************************************************************************
+    function NuevoProspecto($esempresa, $nombre, $telefono, $telefono2, $ci, $ext, $contacto, $telfcontacto, $codusuario, $codOrigen, $codMedio, $email){
+        $telefono= str_replace(" ","", $telefono);
+        $telefono= str_replace("-","", $telefono);
+        $telefono2= str_replace(" ","", $telefono2);
+        $telefono2= str_replace("-","", $telefono2);
+        $telefonocontacto= str_replace(" ","", $telfcontacto);
+        $telefonocontacto= str_replace("-","", $telfcontacto);
+
+        $nombre=strtoupper($nombre);
+        $contacto=strtoupper($contacto);
+        $email=strtolower($email);
+        // Preparo la consulta con las condiciones
+        if ($esempresa=='si'){
+            $esempresa='1';
+        }else{
+            $esempresa='0';
+        }
+        $consulta="insert into prospecto (nombre, ci, ext, telefono, telefono2, esEmpresa, nombreContacto, telefonoContacto, estado, codUsuario, codOrigenProspecto, codMedio, fechaCreacion, email ) 
+			values ('$nombre', '$ci', '$ext', '$telefono','$telefono2', '$esempresa', '$contacto', '$telfcontacto', (select codEstadoProspecto from estado_prospecto where descripcion like '%Nuevo Prospecto%'), $codusuario, $codOrigen, $codMedio, SYSDATE(), '$email' )		
+		";
+
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        // Habilito excepciones 
+        $db->ThrowExceptions = true;
+        if (! $db->TransactionBegin()) $db->Kill();
+
+        $success = true;
+        $sql = $consulta;
+
+        if (! $db->Query($sql)){ 
+            $success = false;
+        }
+        // Si hizo todo bien
+        if ($success) {
+            $codProspecto=$db->GetLastInsertID();
+            $this->NuevoSeguimiento($codProspecto,"SYSDATE()","1");
+            if (! $db->TransactionEnd()) {
+                $db->Kill();				
+            }		
+            return $codProspecto;
+        } else { 	
+            if (! $db->TransactionRollback()) {
+                $db->Kill();
+            }
+        }
+        return "0";
+    }
+    //******************************************************************************************************
+    function ModificarProspecto($nroprospecto, $esempresa, $ci, $ext, $nombre, $telefono, $telefono2, $contacto, $telfcontacto, $codusuario, $codOrigen, $codMedio, $correo="", $latitud="", $longitud=""){
+        // Preparo la consulta con las condiciones
+        if($ext=="")
+        if ($esempresa=='si'){
+            $esempresa='1';
+        }else{
+            $esempresa='0';
+        }
+        if($ext==""){
+            $ext='0';
+        }
+        $consulta="update prospecto set email='$correo', nombre='$nombre', ci='$ci', ext='$ext', telefono='$telefono', telefono2='$telefono2' , esEmpresa='$esempresa', nombreContacto='$contacto', telefonoContacto='$telfcontacto', estado=(select codEstadoProspecto from estado_prospecto where descripcion like '%Nuevo Prospecto%'), codOrigenProspecto=$codOrigen, codMedio=$codMedio, latitud='$latitud', longitud='$longitud'  where codProspecto=$nroprospecto
+		";
+
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        $success = true;
+        $sql = $consulta;
+
+        if (! $db->Query($sql)){ 
+            $success = false;
+        }
+        if (!$success){
+            $this->mensaje=$consulta;
+        }
+        return $success;
+    }
+    //******************************************************************************************************
+    function ObtenerDetalle($codProspecto){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        $consulta="
+		select codProspecto, p.nombre, ci,  e.descripcion as extension, p.telefono, p.telefono2, 
+		p.esEmpresa, p.nombreContacto, p.telefonoContacto, p.codUsuario,
+		o.descripcion as origen, m.descripcion as medio, t.descripcion as TipoMedio, p.notas, p.codPersona, (select completado from seguimiento where codProspecto=$codProspecto order by codSeguimiento desc limit 1) as completado,  (select codSeguimiento from seguimiento where codProspecto=$codProspecto order by codSeguimiento desc limit 1) as codSeguimiento, es.descripcion as estado, CONCAT(per.nombre, ' ', per.apePat) as vendedor, ms.descripcion as motivoSuspension, date_format(fechaCierre,'%d-%m-%Y') as fechaCierre, date_format(fechaCreacion,'%d-%m-%Y') as fechaCreacion, p.email, e.codExtension, o.codOrigenProspecto, m.codTipoMedio, p.codMedio, p.latitud, p.longitud, p.nombreObra, p.codTipoObra, p.direccionObra, p.codTipoProyecto, tob.nombre as tipoObra, tp.nombre as tipoProyecto
+		from prospecto as p
+		left join extension as e on e.codExtension=p.ext
+		left join estado_prospecto as es on es.codEstadoProspecto=p.estado
+		left join medio as m on m.codMedio=p.codMedio
+		left join tipo_medio as t on t.codTipoMedio=m.codTipoMedio
+		left join origen_prospecto as o on o.codOrigenProspecto=p.codOrigenProspecto
+        left join usuario as u on u.codUsuario=p.codUsuario
+        left join persona as per on per.codPersona=u.codPersona
+        left join motivo_suspension as ms on ms.codMotivoSuspension=p.codMotivoSuspension
+        left join tp_tipo_obra as tob on tob.codTipoObra=p.codTipoObra
+        left join tp_tipo_proyecto as tp on tp.codTipoProyecto=p.codTipoProyecto
+		where p.codProspecto=$codProspecto
+		";
+        $db->Query($consulta);
+        $db->MoveFirst();
+        return $db->Row();
+    }
+    //******************************************************************************************************
+    function ObtenerSeguimientos($codProspecto){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+
+        $consulta="
+		select codSeguimiento,  date_format(fechaProxContacto,'%d-%m-%Y') as fechaProxContacto, observacion,
+		date_format(fechaFinContacto,'%d-%m-%Y') as fechaFinContacto, tc.descripcion as TipoContacto, completado, s.descripcion
+		from seguimiento as s
+		left join tipo_contacto as tc on tc.codTipoContacto=s.codTipoContacto
+		where codProspecto=$codProspecto order by codSeguimiento desc
+		";
+        $db->Query($consulta);
+        return $db;
+    }
+    //******************************************************************************************************
+    function CerrarSeguimiento($codSeguimiento, $detalle){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+
+        $consulta="
+		update seguimiento set fechaFinContacto=SYSDATE(), completado='1', fechaCompletado=SYSDATE(), descripcion='$detalle'
+		where codSeguimiento=$codSeguimiento
+		";
+        if (! $db->Query($consulta)){ 
+            $success = false;
+        }
+        return true;
+    }
+    //******************************************************************************************************
+    function NuevoSeguimiento($cod, $fecha, $tipo, $observacion=""){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        $condfecha="$fecha";
+        if ($fecha!="SYSDATE()") $condfecha="'".$fecha."'";
+        $consulta="insert into seguimiento(codProspecto, fechaAlta, fechaProxContacto, codTipoContacto, observacion) values ($cod, SYSDATE(), $condfecha, $tipo,'$observacion')
+		";
+        if (! $db->Query($consulta)){ 
+            $success = false;
+        }
+        return true;
+    }
+    //******************************************************************************************************
+    function NuevaNota($codProspecto, $nota){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+
+        $consulta="
+		update prospecto set notas=CONCAT(date_format(SYSDATE(),'%d-%m-%Y'),': ','$nota','<br>',IFNULL(notas,''))
+		where codProspecto=$codProspecto
+		";
+        if (! $db->Query($consulta)){ 
+            return false;
+        }
+        return true;
+    }
+    //******************************************************************************************************
+    function ObtenerVehiculos($codProspecto){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+
+        $consulta="
+		select esa.descripcion as asignacion,vp.codVehiculoProspecto, vp.codProspecto, m.nombre as modelo, 
+        t.nombre as tipo, st.nombre as subtipo, ma.descripcion as marca, vp.anioComercial, 
+        c.nombre as color, cint.nombre as colorInterior,
+		vp.precioVenta, ec.nombre as estadoCom, eo.nombre as estadoOp, v.chasis, v.codVehiculo, 
+        DATE_FORMAT(v.fechaFacturacion,'%Y-%m-%d')  as fechaFacturacion, 
+        DATE_FORMAT(v.fechaFacturacion,'%d-%m-%Y')  as fechaFacturacion2,
+        DATE_FORMAT(v.fechaLlegada,'%d-%m-%Y') as fechaLlegada, ubi.codUbicacion, ubi.nombre as ubicacion,
+        ent.nombre as lugarEntrega, ent.codUbicacion as codLugarEntrega, m.comModelo as comModeloOriginal, 
+        m.comModeloPre as comModeloPreOriginal, vp.ComModelo, vp.ComModelopre as ComModeloPre, vp.ComTransporte, 
+        vp.ComPlacas, vp.ComOtros, ofi.comTransporte as comTransporteOriginal, ofi.comPlacas as comPlacasOriginal,
+        ofi.comOtros as comOtrosOriginal, vp.precioPiso
+		from vehiculo_prospecto as vp
+		left join subtipo as st on st.codSubTipo=vp.codSubTipo
+		left join tipo as t on t.codTipo=st.codTipo
+		left join modelo as m on m.codModelo = t.codModelo
+		left join marca as ma on ma.codMarca=m.codMarca 
+		left join color as c on c.codColor=vp.codColor
+		left join color_int as cint on cint.codColorInt=vp.codColorInterior
+		left join vehiculo as v on v.codVehiculo=vp.codVehiculo
+		left join estado_com as ec on ec.codEstadoCom=v.codEstadoCom
+		left join estado_op as eo on eo.codEstadoOp=v.codEstadoOp
+    	left join (
+			select codVehiculoProspecto, codSolicitudAsignacion, codEstadoSolicitudAsignacion
+            from solicitud_asignacion 
+            where codSolicitudAsignacion in (
+                       select max(codSolicitudAsignacion) from solicitud_asignacion where  codVehiculoProspecto in (
+                                  select codVehiculoProspecto from vehiculo_prospecto where codProspecto=$codProspecto
+                       ) 
+                       group by codVehiculoProspecto) 
+            group by codVehiculoProspecto
+            order by codSolicitudAsignacion 
+		) as sa on sa.codVehiculoProspecto=vp.codVehiculoProspecto
+    	left join estado_solicitud_asignacion as esa on esa.codEstadoSolicitudAsignacion=sa.codEstadoSolicitudAsignacion
+        left join ubicacion as ent on ent.codUbicacion=vp.lugarEntrega
+        left join ubicacion as ubi on ubi.codUbicacion=v.codUbicacion
+        left join prospecto as p on p.codProspecto=vp.codProspecto
+        left join usuario as u on u.codUsuario=p.codUsuario
+        left join oficina as ofi on ofi.codOficina=u.codOficina
+		where vp.baja='0' and vp.codProspecto=$codProspecto
+		";
+        $db->Query($consulta);
+        return $db;
+    }
+    //******************************************************************************************************
+    function NuevoVehiculo($cod, $ddmarca, $ddmodelo, $ddtipo, $ddsubtipo, $ddcolor, $ddcolorinterior, $precio, $ddAnioComercial, $cantidad){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        //Validaciones
+        if (($precio=="")|| (is_numeric($precio)==false)){
+            $this->mensaje="Debe ingresar un precio.";
+            return false;
+        }
+        $consulta=" select precioMinimo, precioMaximo from precio_modelo where codMarca=$ddmarca and codModelo=$ddmodelo and codTipo=$ddtipo and codSubtipo=$ddsubtipo and gestion=$ddAnioComercial and baja='0' order by codPrecioModelo desc";
+        $db->Query($consulta);
+        if ($db->RowCount()>0){
+            $db->MoveFirst();
+            $dato=$db->Row();
+            $precioMinimo=$dato->precioMinimo;
+            $precioMaximo=$dato->precioMaximo;
+        }else{
+            $this->mensaje="No existe un precio definido para este modelo. Por favor contacte con el departamento de operaciones.";
+            return false;
+        }
+        if (($precioMinimo>$precio)||($precioMaximo<$precio)){
+            $this->mensaje="El precio ingresado no esta aprobado. minimo: ".number_format($precioMinimo, 2, '.', ',')." maximo: ".number_format($precioMaximo, 2, '.', ',');
+            return false;
+        }
+        $consulta="insert into vehiculo_prospecto(codProspecto, codModelo, codTipo, codSubtipo, codColor, codColorInterior, precioVenta, precioPiso,  anioComercial) values ($cod, $ddmodelo, $ddtipo, $ddsubtipo, $ddcolor, $ddcolorinterior, $precio, $precioMinimo, $ddAnioComercial) ";
+        if (! $db->Query($consulta)){ 
+            return false;
+        }
+        return true;
+    }
+    //******************************************************************************************************
+    function ModificarVehiculo($cod, $hcodVehiculo, $ddmarca, $ddmodelo, $ddtipo, $ddsubtipo, $ddcolor, $ddcolorinterior, $precio, $ddAnioComercial){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        $consulta=" select precioMinimo, precioMaximo from precio_modelo where codMarca=$ddmarca and codModelo=$ddmodelo and codTipo=$ddtipo and codSubtipo=$ddsubtipo and gestion=$ddAnioComercial and baja='0' order by codPrecioModelo desc";
+        $db->Query($consulta);
+        if ($db->RowCount()>0){
+            $db->MoveFirst();
+            $dato=$db->Row();
+            $precioMinimo=$dato->precioMinimo;
+            $precioMaximo=$dato->precioMaximo;
+        }else{
+            $precioMinimo=$precio;
+            $precioMaximo=$precio;
+        }
+        if (($precioMinimo>$precio)||($precioMaximo<$precio)){
+            $this->mensaje="El precio ingresado no esta aprobado. minimo: ".number_format($precioMinimo, 2, '.', ',')." maximo: ".number_format($precioMaximo, 2, '.', ',');
+            return false;
+        }
+        $consulta="update vehiculo_prospecto set codModelo=$ddmodelo, codTipo=$ddtipo, codSubtipo=$ddsubtipo, codColor= $ddcolor, codColorInterior=$ddcolorinterior, precioVenta=$precio, anioComercial=$ddAnioComercial  where codVehiculoProspecto=".$hcodVehiculo." and codProspecto=$cod ";
+
+        if (! $db->Query($consulta)){ 
+            return false;
+        }
+        return true;
+    }
+
+    //******************************************************************************************************
+    function QuitarVehiculo($cod, $hcodVehiculo){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }		
+        $consulta="update vehiculo_prospecto set baja='1' where codVehiculoProspecto=$hcodVehiculo and codProspecto=$cod ";
+        if (!$db->Query($consulta)){ 
+            return false;
+        }
+
+        $consulta="update forma_pago_prospecto set baja='1' where codVehiculoProspecto=$hcodVehiculo and codProspecto=$cod ";
+        if (!$db->Query($consulta)){ 
+            return false;
+        }
+
+        return true;
+    }
+    //******************************************************************************************************
+    function NuevaFormaPago($cod, $codFormaPago, $monto, $codVehiculoProspecto, $tasa="", $cuotas="", $periodicidad=""){
+        
+        if(trim($tasa)==""){ $tasa="0";}
+        if(trim($cuotas)==""){ $cuotas="0";}
+        if(trim($periodicidad)==""){ $periodicidad="0";}
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        //verifico si ya existe la forma de pago    1=0 por control negativo siempre
+        $consulta=" select * from forma_pago_prospecto  where codProspecto='$cod' and codFormaPago=$codFormaPago and codVehiculoProspecto=$codVehiculoProspecto and (baja='0' or baja='3') and 1=0 order by codFormaPagoProspecto desc";
+        //echo $consulta;
+        $db->Query($consulta);
+        $baja="'0'";
+        /*if ($codFormaPago==4){ 
+            $baja="'3'";
+            $iMail = new Correo();
+            $iMail->CreditoPropio($cod);
+        }*/
+        
+        // si existe la forma de pago
+        if ($db->RowCount()>0){
+            $db->MoveFirst();
+            $dato=$db->Row();
+            $codFormaPagoProspecto=$dato->codFormaPagoProspecto;
+            $consulta="update forma_pago_prospecto set monto=$monto, tasa='$tasa', cuotas='$cuotas', periodicidad='$periodicidad', baja=$baja  where codFormaPagoProspecto = $codFormaPagoProspecto";
+            if (! $db->Query($consulta)){ 
+                return false;
+            }
+        }else{
+            $consulta="insert into forma_pago_prospecto(codProspecto, codFormaPago, monto, tasa, cuotas, periodicidad, codVehiculoProspecto, baja) values($cod, $codFormaPago, $monto, '$tasa', '$cuotas', '$periodicidad', $codVehiculoProspecto,$baja)";
+            if (! $db->Query($consulta)){ 
+                //echo "a<hr>$consulta <hr>";
+                return false;
+            }
+        }
+        return true;
+    }
+    //******************************************************************************************************
+    function ActualizarFormaPago($cod, $monto, $tasa, $cuotas, $periodicidad, $estado){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        //verifico si ya existe la forma de pago
+        $consulta=" select * from forma_pago_prospecto  where codFormaPagoProspecto=$cod ";
+        $db->Query($consulta);
+        // si existe la forma de pago
+        if ($db->RowCount()>0){
+            $db->MoveFirst();
+            $dato=$db->Row();
+            $codFormaPagoProspecto=$dato->codFormaPagoProspecto;
+            $consulta="update forma_pago_prospecto set monto='$monto', tasa='$tasa', cuotas='$cuotas', periodicidad='$periodicidad', baja='$estado'  where codFormaPagoProspecto = $cod";
+            if (! $db->Query($consulta)){ 
+                return false;
+            }
+        }else{
+            return false;
+        }
+        return true;
+    }
+    //******************************************************************************************************
+    function ObtenerPagos($codProspecto){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+
+        $consulta="
+select FormaPago, sum(monto) as monto, sum(pago) as pago, sum(monto)-COALESCE(sum(pago),0) as saldo, 
+COALESCE(sum(pago),0)/sum(monto)*100 as avance, consulta.codFormaPago from (
+            select fpp.codFormaPagoProspecto, fp.codFormaPago,  fp.descripcion as FormaPago, fpp.monto
+            from forma_pago_prospecto as fpp
+            left join forma_pago as fp on fp.codFormaPago=fpp.codFormaPago
+			left join vehiculo_prospecto as vp on vp.codVehiculoProspecto=fpp.codVehiculoProspecto
+            where fpp.baja='0' and fpp.monto>0 and fpp.codProspecto=$codProspecto and vp.baja='0'
+) as consulta 
+left join (
+	select sum(p.monto) as pago,  fp.codFormaPago, p.codFormaPagoProspecto
+	from pago as p
+	left join forma_pago_prospecto as fp on fp.codFormaPagoProspecto=p.codFormaPagoProspecto
+	left join vehiculo_prospecto as v on v.codVehiculoProspecto=fp.codVehiculoProspecto
+	where v.codProspecto=$codProspecto and v.baja='0'  
+	group by p.codFormaPagoProspecto
+) as pagos on pagos.codFormaPagoProspecto=consulta.codFormaPagoProspecto
+group by FormaPago, consulta.codFormaPago
+		";
+        $db->Query($consulta);
+        return $db;
+    }
+    //******************************************************************************************************
+    function ObtenerPago($codCotizacion){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+
+        $consulta="
+select consulta.codFormaPagoProspecto, FormaPago, sum(monto) as monto, sum(pago) as pago, sum(monto)-COALESCE(sum(pago),0) as saldo, 
+COALESCE(sum(pago),0)/sum(monto)*100 as avance, consulta.codFormaPago from (
+            select fpp.codFormaPagoProspecto, fp.codFormaPago,  fp.descripcion as FormaPago, fpp.monto
+            from forma_pago_prospecto as fpp
+            left join forma_pago as fp on fp.codFormaPago=fpp.codFormaPago
+			left join vehiculo_prospecto as vp on vp.codVehiculoProspecto=fpp.codVehiculoProspecto
+            where fpp.baja='0' and fpp.monto>0 and fpp.codVehiculoProspecto=$codCotizacion 
+) as consulta 
+left join (
+	select sum(p.monto) as pago,  fp.codFormaPago, p.codFormaPagoProspecto
+	from pago as p
+	left join forma_pago_prospecto as fp on fp.codFormaPagoProspecto=p.codFormaPagoProspecto
+	where fp.codVehiculoProspecto=$codCotizacion and p.baja='0'
+	group by p.codFormaPagoProspecto
+) as pagos on pagos.codFormaPagoProspecto=consulta.codFormaPagoProspecto
+group by consulta.codFormaPagoProspecto, FormaPago, consulta.codFormaPago
+		";
+       
+        $db->Query($consulta);
+        return $db;
+    }
+    //******************************************************************************************************
+    function ObtenerDetalleFormaPago($codFormaPagoProspecto){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+
+        $consulta="select codPago, monto, estado, case when baja='0' then 'Activo' else 'Eliminado' end as activo, DATE_FORMAT(fechaPago,'%d/%m/%Y') as fechaPago from pago where codFormaPagoProspecto=$codFormaPagoProspecto";
+        $db->Query($consulta);
+        return $db;
+    }
+    //******************************************************************************************************
+    function ObtenerPagosDetallados($codProspecto){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+
+        $consulta="
+ select *, coalesce(pagado,0)/monto * 100 as avance, monto-coalesce(pagado,0) as saldo from (
+		select esa.descripcion as asignacion,vp.codVehiculoProspecto, vp.codProspecto, m.nombre as modelo, t.nombre as tipo, st.nombre as subtipo, 
+		ma.descripcion as marca, vp.precioVenta, vp.anioComercial, c.nombre as color, cint.nombre as colorInterior,
+		ec.nombre as estadoCom, eo.nombre as estadoOp, v.chasis
+		from vehiculo_prospecto as vp
+		left join subtipo as st on st.codSubTipo=vp.codSubTipo
+		left join tipo as t on t.codTipo=st.codTipo
+		left join modelo as m on m.codModelo = t.codModelo
+		left join marca as ma on ma.codMarca=m.codMarca 
+		left join color as c on c.codColor=vp.codColor
+		left join color_int as cint on cint.codColorInt=vp.codColorInterior
+		left join vehiculo as v on v.codVehiculo=vp.codVehiculo
+		left join estado_com as ec on ec.codEstadoCom=v.codEstadoCom
+		left join estado_op as eo on eo.codEstadoOp=v.codEstadoOp
+    	left join (
+			select codVehiculoProspecto, max(codSolicitudAsignacion) as codSolicitudAsignacion, codEstadoSolicitudAsignacion
+			from solicitud_asignacion 
+			group by codVehiculoProspecto
+		) as sa on sa.codVehiculoProspecto=vp.codVehiculoProspecto
+    	left join estado_solicitud_asignacion as esa on esa.codEstadoSolicitudAsignacion=sa.codEstadoSolicitudAsignacion
+		where vp.baja='0' and vp.codProspecto=$codProspecto
+) as veh
+left join (
+		select fpp.codVehiculoProspecto as codVehiculoProspectop, fpp.codFormaPagoProspecto,  fp.descripcion as FormaPago, fpp.monto, case when fpp.baja='3' then 'Pendiente' else 'Aprobado' end as Aprobacion,
+        fpp.tasa, fpp.cuotas, fpp.periodicidad
+		from forma_pago_prospecto as fpp
+		left join forma_pago as fp on fp.codFormaPago=fpp.codFormaPago
+		where (fpp.baja='0' or fpp.baja='3' ) and fpp.monto>0 and fpp.codProspecto=$codProspecto
+) as formapago on veh.codVehiculoProspecto=formapago.codVehiculoProspectop
+left join (
+select COALESCE(sum(pago.monto),0) as pagado, pago.codFormaPagoProspecto as codFormaPagoProspecto2 from pago left join forma_pago_prospecto as fp on fp.codFormaPagoProspecto=pago.codFormaPagoProspecto 
+where pago.baja='0' and fp.codProspecto=$codProspecto  group by pago.codFormaPagoProspecto 
+) as p on p.codFormaPagoProspecto2=formapago.codFormaPagoProspecto";
+        $db->Query($consulta);
+        return $db;
+    }
+    //******************************************************************************************************
+    function ObtenerPagosDetalladosVehiculo($codVehiculo){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        $consulta = "select codProspecto from vehiculo_prospecto where codVehiculo=$codVehiculo";
+        if (! $db->Query($consulta)){ 
+            return false;
+        }
+        if ($db->RowCount()>0){
+            $db->MoveFirst();
+            $dato=$db->Row();
+            $codProspecto=$dato->codProspecto;
+            $consulta="
+ select *, coalesce(pagado,0)/monto * 100 as avance, monto-coalesce(pagado,0) as saldo from (
+		select esa.descripcion as asignacion,vp.codVehiculoProspecto, vp.codProspecto, m.nombre as modelo, t.nombre as tipo, st.nombre as subtipo, 
+		ma.descripcion as marca, vp.precioVenta, vp.anioComercial, c.nombre as color, cint.nombre as colorInterior,
+		ec.nombre as estadoCom, eo.nombre as estadoOp, v.chasis
+		from vehiculo_prospecto as vp
+		left join subtipo as st on st.codSubTipo=vp.codSubTipo
+		left join tipo as t on t.codTipo=st.codTipo
+		left join modelo as m on m.codModelo = t.codModelo
+		left join marca as ma on ma.codMarca=m.codMarca 
+		left join color as c on c.codColor=vp.codColor
+		left join color_int as cint on cint.codColorInt=vp.codColorInterior
+		left join vehiculo as v on v.codVehiculo=vp.codVehiculo
+		left join estado_com as ec on ec.codEstadoCom=v.codEstadoCom
+		left join estado_op as eo on eo.codEstadoOp=v.codEstadoOp
+    	left join (
+			select codVehiculoProspecto, max(codSolicitudAsignacion) as codSolicitudAsignacion, codEstadoSolicitudAsignacion
+			from solicitud_asignacion 
+			group by codVehiculoProspecto
+		) as sa on sa.codVehiculoProspecto=vp.codVehiculoProspecto
+    	left join estado_solicitud_asignacion as esa on esa.codEstadoSolicitudAsignacion=sa.codEstadoSolicitudAsignacion
+		where vp.baja='0' and vp.codProspecto=$codProspecto and vp.codVehiculo=$codVehiculo and vp.baja='0'
+) as veh
+left join (
+		select fpp.codVehiculoProspecto as codVehiculoProspectop, fpp.codFormaPagoProspecto,  fp.descripcion as FormaPago, fpp.monto
+		from forma_pago_prospecto as fpp
+		left join forma_pago as fp on fp.codFormaPago=fpp.codFormaPago
+		where fpp.baja='0' and fpp.monto>0 and fpp.codProspecto=$codProspecto
+) as formapago on veh.codVehiculoProspecto=formapago.codVehiculoProspectop
+left join (
+select COALESCE(sum(pago.monto),0) as pagado, pago.codFormaPagoProspecto as codFormaPagoProspecto2 from pago left join forma_pago_prospecto as fp on fp.codFormaPagoProspecto=pago.codFormaPagoProspecto 
+where fp.codProspecto=$codProspecto  and pago.baja='0' group by pago.codFormaPagoProspecto  
+) as p on p.codFormaPagoProspecto2=formapago.codFormaPagoProspecto";
+            $db->Query($consulta);
+            return $db;
+        }else{
+            return "0";
+        }
+    }
+    //******************************************************************************************************
+    function SolicitarAsignacionVehiculo($cod, $hcodVehiculo){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        // Verifico las condiciones de solicitu de asignacion, como ser que no haya una solicitud pendiente para este vehiculo o ya se haya asignado un chasis
+        $consulta="select * from solicitud_asignacion where codVehiculoProspecto=$hcodVehiculo and codEstadoSolicitudAsignacion in (SELECT codEstadoSolicitudAsignacion FROM estado_solicitud_asignacion where descripcion='Pendiente'  )"; 
+        $db->Query($consulta);
+        // Si cumple todas las condiciones registro una nueva solicitud 
+        if ( $db->RowCount() > 0 ){
+            $this->mensaje="Ya existe una solicitud para este vehiculo. ";
+            return false;
+        }
+
+        $consulta="insert into solicitud_asignacion (codEstadoSolicitudAsignacion, codVehiculoProspecto) values ((SELECT codEstadoSolicitudAsignacion FROM estado_solicitud_asignacion where descripcion='Pendiente'  limit 1), $hcodVehiculo) ";
+        if (! $db->Query($consulta)){ 
+            $this->mensaje=$consulta;
+            return false;
+        }
+        // Debo mandar correo solicitando asignacion
+        //---------------------------------------------
+        $codsolicitud=$db->GetLastInsertID();
+        $iCorreo = new Correo();
+        $iCorreo->SolicitarAsignacion($codsolicitud);
+        return true;
+    }
+    //******************************************************************************************************
+    function SolicitarDesasignacionVehiculo($cod, $hcodVehiculo){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        // Verifico las condiciones de solicitu de asignacion, como ser que no haya una solicitud pendiente para este vehiculo o ya se haya desasignado un chasis
+        $consulta="select * from solicitud_desasignacion where codVehiculoProspecto=$hcodVehiculo and codEstadoSolicitudDesasignacion in (SELECT codEstadoSolicitudAsignacion FROM estado_solicitud_asignacion where descripcion='Pendiente'  )"; 
+        $db->Query($consulta);
+        // Si cumple todas las condiciones registro una nueva solicitud 
+        if ( $db->RowCount() > 0 ){
+            $this->mensaje="Ya existe una solicitud para este vehiculo. ";
+            return false;
+        }
+
+        $consulta="insert into solicitud_desasignacion (codEstadoSolicituddesasignacion, codVehiculoProspecto) values ((SELECT codEstadoSolicitudAsignacion FROM estado_solicitud_asignacion where descripcion='Pendiente'  limit 1), $hcodVehiculo) ";
+        if (! $db->Query($consulta)){ 
+            $this->mensaje=$consulta;
+            return false;
+        }
+        // Debo mandar correo solicitando asignacion
+        //---------------------------------------------
+        $codsolicitud=$db->GetLastInsertID();
+        $iCorreo = new Correo();
+        $iCorreo->SolicitarDesasignacion($codsolicitud);
+        return true;
+    }
+    //******************************************************************************************************
+    function ListarProspecto($nro, $nombre, $telefono, $ci, $codUsuario, $estado="", $origen="", $vendedor="", $oficina="", $sistemacons=""){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        $condicion="";
+        if (is_numeric($nro)) $condicion.=" and p.codProspecto =".$nro;
+        if ($nombre!="") $condicion.=" and p.nombre like '%".str_replace(" ","%",$nombre)."%'";
+        if ($telefono!="") $condicion.=" and p.telefono like '%".str_replace(" ","%",$telefono)."%'";
+        if ($ci!="") $condicion.=" and ci like '%".str_replace(" ","%",$ci)."%'";
+        if (($oficina!="")&&($oficina!="0")) $condicion.=" and u.codOficina='$oficina' ";
+        if (is_numeric($estado)) $condicion.=" and p.estado='$estado' ";
+        if (is_numeric($origen)) $condicion.=" and p.codOrigenProspecto='$origen' ";
+        if (is_numeric($vendedor)) $condicion.=" and p.codUsuario='$vendedor' ";
+        if ($codUsuario!=""){
+            $iUsuario = new Usuario();
+            $iUsuario->RecuperarSesionCod($codUsuario);
+            $perfil= $iUsuario->obtenerPerfil();
+            if (($perfil=="Vendedor")||($perfil=="Operaciones")){
+                $condicion.=" and p.codUsuario='$codUsuario' ";
+            }
+            if ($perfil=="Jefatura"){
+                $condicion.=" and p.codUsuario in (select codUsuario from usuario where codOficina=(select codOficina from usuario where codusuario='$codUsuario')) ";
+            }
+
+        }
+        $consulta="
+select tab.*, leftj.total from (
+    select distinct p.*, e.descripcion as estadoProspecto, CONCAT(per.nombre, ' ', per.apePat) as vendedor 
+    from prospecto as p
+    left join estado_prospecto as e on e.codEstadoProspecto=p.estado
+    left join usuario as u on u.codUsuario=p.codUsuario 
+    left join persona as per on per.codPersona=u.codPersona
+    where 1=1 $condicion order by p.codProspecto desc 
+) as tab
+left join (
+    select codProspecto, sum(total) as total
+    from tp_cabecera_cotizacion
+    where codEstado=1 or codEstado=4
+    group by codProspecto
+) as leftj on leftj.codProspecto=tab.codProspecto
+
+";
+
+        if(($sistemacons!="")&&($sistemacons!="0")){
+            $consulta="
+select distinct c1.* from (
+    $consulta
+) as c1 
+inner join (
+    SELECT codProspecto, codSistProducto  
+    FROM newsgc.tp_cabecera_cotizacion 
+) as c2 on c2.codProspecto=c1.codProspecto
+where c2.codSistProducto=$sistemacons
+limit 200 ";    
+        }
+        
+        $db->Query($consulta);
+        return $db;
+    }
+    //******************************************************************************************************
+    function CuadroProspecto($nro){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        //------------------------------
+        $consulta="
+select *, ( cast(TotalOperacion as decimal (10,2)) - cast( PagosRecibidos as decimal (10,2)) ) as PagosPendientes from (
+		select (
+				select (sum(case when codVehiculo is null then 0 else 1 end)/count(*)*100*0.40) +  
+						(
+						 (
+						   (
+							(
+							SELECT IFNULL(sum(IFNULL(monto,0)),0) FROM forma_pago_prospecto 
+							where  baja='0' and codProspecto=vp.codProspecto
+							) * 100
+						   ) / IFNULL(sum(IFNULL(total,0)),0) 
+						 ) * 0.45 
+						) +
+						(
+						 case when (
+									select e.descripcion from prospecto as p 
+									left join estado_prospecto as e on e.codEstadoProspecto=p.estado 
+									where p.codProspecto=vp.codProspecto limit 1
+									)='Cerrado' then 15 else 0 end 
+						) as prcAvanceVenta
+				from vehiculo_prospecto as vp2 where vp2.codProspecto=vp.codProspecto and vp2.baja='0'
+		) as prcAvanceVenta,
+		(
+		 select case when completado='0' then 
+					case when codTipoContacto=1 then 0 else 50 end 
+				else 100 end as prcSeguimiento 
+		 from seguimiento where codProspecto=vp.codProspecto 
+		 order by codSeguimiento desc limit 1
+		) as prcSeguimiento,
+		(
+		 (
+		  (
+		   (
+			SELECT IFNULL(sum(IFNULL(monto,0)),0) FROM forma_pago_prospecto 
+			where  baja='0' and codProspecto=vp.codProspecto
+		   ) * 100
+          ) / sum(total) 
+		 )  
+		) as prcPagos,
+		IFNULL(sum(IFNULL(total,0)),0) as TotalOperacion, 
+		(
+			SELECT sum(fpp2.monto) FROM forma_pago_prospecto   as fpp2
+			left join tp_cabecera_cotizacion  as vp2 on vp2.codCabCotiza=fpp2.codVehiculoProspecto
+			where  fpp2.baja='0' and vp2.codEstado='1' and fpp2.codProspecto=vp.codProspecto
+		) as PagosRecibidos
+		from tp_cabecera_cotizacion as vp where codProspecto=$nro and vp.codEstado='1'
+) as consulta
+		";
+        $db->Query($consulta);
+        $db->MoveFirst();
+        return $db->Row();
+    }
+    //******************************************************************************************************
+    function ValidarProspecto($ci="", $telefono="", $nombre="", $telefono2="", $nombrecontacto="", $telefonocontacto=""){
+        $ci=trim($ci);
+        $telefono=trim($telefono);
+        $telefono2=trim($telefono2);
+        $nombre=trim($nombre);
+        $nombrecontacto=trim($nombrecontacto);
+        $telefonocontacto=trim($telefonocontacto);
+        $ci= str_replace(" ","", $ci);
+        $telefono= str_replace(" ","%", $telefono);
+        $nombre= str_replace(" ","%", $nombre);
+        $nombrecontacto= str_replace(" ","%", $nombrecontacto);
+        $telefono= str_replace("-","%", $telefono);
+        $telefono2= str_replace(" ","%", $telefono2);
+        $telefono2= str_replace("-","%", $telefono2);
+        $telefonocontacto= str_replace(" ","%", $telefonocontacto);
+        $telefonocontacto= str_replace("-","%", $telefonocontacto);
+        $condicion="";
+        if (($ci!="")&&($ci!="0")){ $condicion.=" or p.ci = '".$ci."'";}
+        if (($nombre!="")){ $condicion.=" or p.nombre like '%".$nombre."%'";}
+        if (($nombre!="")){ $condicion.=" or p.nombreContacto like '%".$nombre."%'";}
+        if (($nombrecontacto!="")){ $condicion.=" or p.nombre like '%".$nombrecontacto."%'";}
+        if (($nombrecontacto!="")){ $condicion.=" or p.nombreContacto like '%".$nombrecontacto."%'";}
+
+        if (($telefono!="")&&($telefono!="0")&&($telefono!="%")){ $condicion.=" or p.telefono like '%".$telefono."%'";}
+        if (($telefono!="")&&($telefono!="0")&&($telefono!="%")){ $condicion.=" or p.telefono2 like '%".$telefono."%'";}
+        if (($telefono!="")&&($telefono!="0")&&($telefono!="%")){ $condicion.=" or p.telefonoContacto like '%".$telefono."%'";}
+
+        if (($telefono2!="")&&($telefono2!="0")&&($telefono2!="%")){ $condicion.=" or p.telefono like '%".$telefono2."%'";}
+        if (($telefono2!="")&&($telefono2!="0")&&($telefono2!="%")){ $condicion.=" or p.telefono2 like '%".$telefono2."%'";}
+        if (($telefono2!="")&&($telefono2!="0")&&($telefono2!="%")){ $condicion.=" or p.telefonoContacto like '%".$telefono2."%'";}
+
+        if (($telefonocontacto!="")&&($telefonocontacto!="0")&&($telefonocontacto!="%")){ $condicion.=" or p.telefono like '%".$telefonocontacto."%'";}
+        if (($telefonocontacto!="")&&($telefonocontacto!="0")&&($telefonocontacto!="%")){ $condicion.=" or p.telefono2 like '%".$telefonocontacto."%'";}
+        if (($telefonocontacto!="")&&($telefonocontacto!="0")&&($telefonocontacto!="%")){ $condicion.=" or p.telefonoContacto like '%".$telefonocontacto."%'";}
+
+
+        $consulta="SELECT p.codProspecto, p.nombre, p.ci, p.telefono, p.telefono2, p.codUsuario , CONCAT(per.nombre, ' ', per.apePat) as vendedor, ofi.descripcion as oficina, e.descripcion as estado, (select DATE_FORMAT(max(fechaFinContacto),'%d/%m/%Y')  from seguimiento where codProspecto=p.codProspecto) as contacto, p.nombreContacto, p.telefonoContacto
+    FROM prospecto as p
+    left join usuario as u on u.codUsuario=p.codUsuario
+    left join persona as per on per.codPersona=u.codPersona
+    left join oficina as ofi on ofi.codOficina=u.codOficina
+    left join estado_prospecto as e on e.codEstadoProspecto=p.estado
+    where  p.telefono = 'sintelefonooo' $condicion";
+        
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        $db->Query($consulta);
+        $db->MoveFirst();
+        $cont=0;
+        //echo "<table class='table table-striped table-bordered table-hover'>";
+        while (! $db->EndOfSeek()) {
+            /*if ($cont==0){
+                echo "<tr><td colspan='6'><h5 style='color:#000'>Ya existen prospectos activos con esos datos.</h5></td></tr>";
+                echo "<tr>";
+                echo "<th>Codigo</td>";
+                echo "<th>Nombre</td>";
+                echo "<th>CI</td>";
+                echo "<th>Nombre Contacto</td>";
+                echo "<th>Telefono Contacto</td>";
+                echo "<th>Telefono</td>";
+                echo "<th>Telefono2</td>";
+                echo "<th>Vendedor</td>";
+                echo "<th>Oficina</td>";
+                echo "<th>Estado</td>";
+                echo "<th>Contacto</td>";
+                echo "</tr>";	
+            }*/
+            $cont=$cont+1;
+            $row = $db->Row();
+            //echo "<hr>123";
+            /*echo "<tr>";
+            echo "<td>".$row->codProspecto."</td>";
+            echo "<td>".$row->nombre."</td>";
+            echo "<td>".$row->ci."</td>";
+            echo "<td>".$row->nombreContacto."</td>";
+            echo "<td>".$row->telefonoContacto."</td>";
+            echo "<td>".$row->telefono."</td>";
+            echo "<td>".$row->telefono2."</td>";
+            echo "<td>".$row->vendedor."</td>";
+            echo "<td>".$row->oficina."</td>";
+            echo "<td>".$row->estado."</td>";
+            echo "<td>".$row->contacto."</td>";
+            echo "</tr>";*/
+            echo '
+            <div class="row">
+            <div class="col-md-12">
+          <div class="box box-danger">
+          <div class="direct-chat-info clearfix">
+                    <span class="direct-chat-name pull-left">&nbsp;&nbsp;&nbsp;&nbsp;'.$row->nombre.' ('.$row->codProspecto.')</span>
+                    <span class="direct-chat-timestamp pull-right">Creado por:&nbsp;&nbsp;'.$row->vendedor.'('.$row->oficina.')'.'&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                  </div>
+            <div class="box-body">
+              <span style="display: inline-block;padding: 0 15px 0 15px;width: 160px;">CI: &nbsp;&nbsp;'.$row->ci.'</span>
+              <span style="display: inline-block;padding: 0 15px 0 15px;width: 160px;">telefono: &nbsp;&nbsp;'.$row->telefono.' '.$row->telefono.' '.$row->telefono.'</span>
+              <span style="display: inline-block;padding: 0 15px 0 15px;width: 160px;">Telefono2: &nbsp;&nbsp;'.$row->telefono2.'</span>
+              <span style="display: inline-block;padding: 0 15px 0 15px;width: 160px;">Nombre contacto:: &nbsp;&nbsp;'.$row->nombreContacto.'</span>
+              <span style="display: inline-block;padding: 0 15px 0 15px;width: 160px;">Telf. contacto: &nbsp;&nbsp;'.$row->telefonoContacto.'</span>
+              <span style="display: inline-block;padding: 0 15px 0 15px;width: 160px;">Estado: &nbsp;&nbsp;'.$row->estado.'</span>
+              <span style="display: inline-block;padding: 0 15px 0 15px;width: 160px;">Ultimo contacto: &nbsp;&nbsp;'.$row->contacto.'</span>
+              
+            </div>
+            <!-- /.box-body -->
+          </div>
+          <!-- /.box -->
+        </div>
+            </div>
+            ';
+        }
+        if ($cont==0){
+            echo '
+          <center><h5 class="box-title">No existen coincidencias</h5></center><br>
+    
+            ';
+        }
+        //echo "</table>";
+    }
+    //******************************************************************************************************
+    function RegistrarPago($codpagovehiculo, $monto){
+        if (is_numeric($monto)==false){
+            $this->mensaje="El monto ingresado para el pago no corresponde a un valor numerico valida.";
+            return false;
+        }
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }
+        //obtengo el monto total de la forma de pago y los pagos que se hicieron hasta el momento.
+        $consulta="select monto as pactado,  
+COALESCE((select sum(monto) as pagos from pago where baja='0' and codFormaPagoProspecto=fp.codFormaPagoProspecto),0) as pagos
+from forma_pago_prospecto as fp where codFormaPagoProspecto=$codpagovehiculo";
+        $db->Query($consulta);
+        $pactado=0;
+        $pagado=0;
+        if ( $db->RowCount() > 0 ){
+            $db->MoveFirst();
+            $row = $db->Row();
+            $pactado=$row->pactado;
+            $pagado=$row->pagos;
+        }
+        // si el monto pagado + el pago actual no excede el total pactado acepto el pago, sino mensaje
+        if ($pagado+$monto<=$pactado){
+            $consulta="insert into pago (codFormaPagoProspecto, monto, fechaPago) values ('$codpagovehiculo','$monto', SYSDATE())";
+            if (! $db->Query($consulta)){  
+                $this->mensaje=$consulta;
+                return false;
+            }
+        }else{
+            $saldo=$pactado-$pagado;
+            $this->mensaje=" No se pudo registrar el pago. El monto total excederia el pactado. <ul><li>Pactado:".number_format($pactado, 2, '.', ',')."</li><li> Pagos:".number_format($pagado, 2, '.', ',')."</li><li> Saldo:".number_format($saldo, 2, '.', ',')."</li></ul>";
+            return false;
+        }
+        return true;   
+    }
+    //--------------------------------------------------------------------------------------------------------    
+    function EliminarPago($codpago){
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }
+        $consulta="update pago set baja='1' where codPago=$codpago";
+        if (! $db->Query($consulta)){ 
+            $this->mensaje=$consulta;
+            return false;
+        }
+        return true;
+    }
+    //--------------------------------------------------------------------------------------------------------    
+    function EliminarFormaPago($hcodpagovehiculo){
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }
+        $consulta="update forma_pago_prospecto set baja='1' where codFormaPagoProspecto=$hcodpagovehiculo";
+        if (! $db->Query($consulta)){ 
+            $this->mensaje=$consulta;
+            return false;
+        }
+        return true;
+    }
+    //--------------------------------------------------------------------------------------------------------    
+    function CerrarProspecto($codProspecto){
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }
+        $consulta="update prospecto set estado=(select codEstadoProspecto from estado_prospecto where descripcion='Cerrado' limit 1), fechaCierre=SYSDATE() where codProspecto=$codProspecto and estado=(select codEstadoProspecto from estado_prospecto where descripcion='Nuevo Prospecto')";
+        if (! $db->Query($consulta)){ 
+            $this->mensaje=$consulta;
+            return false;
+        }
+        return true;
+    }
+    //--------------------------------------------------------------------------------------------------------    
+    function Facturar($codVehiculo){
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }
+        $consulta=" select codVehiculo from vehiculo_prospecto where codVehiculoProspecto='$codVehiculo'";
+        if (! $db->Query($consulta)){ 
+            $this->mensaje=$consulta;
+            return false;
+        }
+        if ($db->RowCount()>0){
+            $db->MoveFirst();
+            $vp= $db->Row();
+            $codvp= $vp->codVehiculo;
+
+            $consulta="update vehiculo set codEstadoCom='4', fechaFacturacion=SYSDATE() where codVehiculo='$codvp' and codEstadoCom='2' ";
+            if (! $db->Query($consulta)){ 
+                $this->mensaje=$consulta;
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+    //--------------------------------------------------------------------------------------------------------    
+    function ReaperturarProspecto($codProspecto){
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }
+        $consulta="update prospecto set estado=(select codEstadoProspecto from estado_prospecto where descripcion='Nuevo Prospecto' limit 1), fechaCierre=SYSDATE() where codProspecto=$codProspecto and estado=(select codEstadoProspecto from estado_prospecto where descripcion='Cerrado')";
+        if (! $db->Query($consulta)){ 
+            $this->mensaje=$consulta;
+            return false;
+        }
+        return true;
+    }
+    //--------------------------------------------------------------------------------------------------------    
+    function Reasignar($codProspecto, $codVendedor){
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }
+        $consulta="update prospecto set codUsuario=$codVendedor where codProspecto=$codProspecto ";
+        if (! $db->Query($consulta)){ 
+            $this->mensaje=$consulta;
+            return false;
+        }
+        return true;
+    }
+    //--------------------------------------------------------------------------------------------------------        
+    function AgregarArchivo($vcod, $nuevonombre, $tipo){
+
+        $consulta="insert into archivos( codProspecto, nombre, codTipoArchivo, fecha, baja) values( '$vcod', '$nuevonombre','$tipo', NOW(),'0')";	
+        $db = new MySQL();
+        if ($db->Error()) $db->Kill();
+        $db->ThrowExceptions = true;
+
+        if (! $db->TransactionBegin()) $db->Kill();
+        $success = true;
+        $sql = $consulta;
+        if (! $db->Query($sql)) $success = false;
+        //Obtengo empresa del prospecto
+        $consulta="select codProspecto, sum(Fiat) as Fiat, sum(NoFiat) as NoFiat from (
+select vp.codProspecto, case when mo.codMarca=1 then 1 else 0 end as Fiat,
+case when mo.codMarca<>1 then 1 else 0 end as NoFiat
+from vehiculo_prospecto  as vp
+left join modelo as mo on vp.codModelo=mo.codModelo
+where codProspecto=$vcod and vp.baja='0'
+) as tabla group by codProspecto";
+        $fiat=false;
+        $nofiat=false;
+        if($success){
+            $sql = $consulta;
+            if (! $db->Query($sql)) $success = false;
+            if($success){
+                if($db->RowCount()>0){
+                    $db->MoveFirst();
+                    $control=$db->Row();
+                    if ($control->Fiat!="0"){
+                        $fiat=true;
+                    }
+                    if ($control->NoFiat!="0"){
+                        $nofiat=true;
+                    }
+                }
+            }
+        }
+        //Verifico si el tipo de archivo tiene mensaje
+        $controlfiat="";
+        $controlnofiat="";
+        $tipoarchivo="";
+        if($success){
+            $consulta="select * from tipo_archivo where codTipoArchivo=$tipo";
+            $sql = $consulta;
+            if (!$db->Query($sql)) $success = false;
+            if($success){
+                if($db->RowCount()>0){
+                    $db->MoveFirst();
+                    $control=$db->Row();
+                    if ($control->notificacionRodaria!=""){
+                        $controlfiat=$control->notificacionRodaria;
+                        $tipoarchivo=$control->descripcion;
+                    }
+                    if ($control->notificacionCarrera!=""){
+                        $controlnofiat=$control->notificacionCarrera;
+                        $tipoarchivo=$control->descripcion;
+                    }
+                }
+            }
+        }
+        // Envio los correos respectivos
+        if($success){
+            if($fiat){
+                //enviar correo a notificacionRodaria, con codprospecto y tipo de archivo
+                $iCorreo = new Correo();
+                $iCorreo->NuevoArchivo($vcod, $controlfiat, $tipoarchivo);
+            }
+            if($nofiat){
+                //enviar correo a notificacionRodaria, con codprospecto y tipo de archivo
+                $iCorreo = new Correo();
+                $iCorreo->NuevoArchivo($vcod, $controlnofiat, $tipoarchivo);
+            }
+        }
+        //Termino transaccion
+        if ($success) {
+            if (! $db->TransactionEnd()) {
+                $db->Kill();
+            }		
+            return true;		
+        } else { 	
+            if (! $db->TransactionRollback()) {
+                $db->Kill();
+                return false;
+            }
+        }
+        return true;
+    }
+    function CambiarPrecio($cod, $monto, $commod, $commodpre,  $comtransp, $complacas, $comotros, $commodh, $commodpreh,  $comtransph, $complacash, $comotrosh){
+        if (is_numeric($monto)){
+            $consulta=" update vehiculo_prospecto set precioVenta='$monto'";
+            
+            if($comtransp==""){$comtransp="NULL";}else{$comtransp="'".$comtransp."'";}
+            $consulta.=", ComTransporte=$comtransp";
+            
+            if($complacas==""){$complacas="NULL";}else{$complacas="'".$complacas."'";}
+            $consulta.=", ComPlacas=$complacas";
+            
+            if($comotros==""){$comotros="NULL";}else{$comotros="'".$comotros."'";}
+            $consulta.=", ComOtros=$comotros";
+            
+            if($commod==""){$commod="NULL";}else{$commod="'".$commod."'";}
+            $consulta.=", ComModelo=$commod";
+            
+            if($commodpre==""){$commodpre="NULL";}else{$commodpre="'".$commodpre."'";}
+            $consulta.=", ComModeloPre=$commodpre";
+            
+            if($comtransph==""){$comtransph="NULL";}else{$comtransph="'".$comtransph."'";}
+            $consulta.=", ComTransporteH=$comtransph";
+            
+            if($complacash==""){$complacash="NULL";}else{$complacash="'".$complacash."'";}
+            $consulta.=", ComPlacasH=$complacash";
+            
+            if($comotrosh==""){$comotrosh="NULL";}else{$comotrosh="'".$comotrosh."'";}
+            $consulta.=", ComOtrosH=$comotrosh";
+            
+            if($commodh==""){$commodh="NULL";}else{$commodh="'".$commodh."'";}
+            $consulta.=", ComModeloH=$commodh";
+            
+            if($commodpreh==""){$commodpreh="NULL";}else{$commodpreh="'".$commodpreh."'";}
+            $consulta.=", ComModeloPreH=$commodpreh";
+            
+            $consulta.=" where codVehiculoProspecto='$cod' ";	
+            
+            //echo $consulta;
+            
+            $db = new MySQL();
+            if ($db->Error()) $db->Kill();
+            $db->ThrowExceptions = true;
+
+            if (! $db->TransactionBegin()) $db->Kill();
+            $success = true;
+            $sql = $consulta;
+            if (! $db->Query($sql)) $success = false;
+            if ($success) {
+                if (! $db->TransactionEnd()) {
+                    $db->Kill();
+                }		
+                return true;		
+            } else { 	
+                if (! $db->TransactionRollback()) {
+                    $db->Kill();
+                    return false;
+                }
+            }
+            return true;
+        }else{
+            return true;
+        }
+    }
+    //--------------------------------------------------------------------------------------------------------    
+    function ListarArchivos($cod){
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "0";
+        }
+        $condicion="";
+        if (is_numeric($nro)) $condicion.=" and codProspecto =".$nro;
+        $consulta="
+		select * from archivos where 1=1 and baja='0' $condicion
+		";
+        $db->Query($consulta);
+        return $db;
+    }
+    //--------------------------------------------------------------------------------------------------------    
+    public function ListarImagenes($cod){
+        $db = new MySQL();
+        if ($db->Error()) $db->Kill();
+        $consulta="SELECT a.*, ta.descripcion as tipoArchivo, case when a.baja='0' then 'Vigente' else 'Eliminado' end as estado FROM archivos as a left join tipo_archivo as ta on ta.codTipoArchivo=a.codTipoArchivo  where codProspecto=".$cod;
+        if (! $db->Query($consulta)) $db->Kill();
+        $db->MoveFirst();
+        //echo "<table><tr><td>";
+        echo "<table class='table table-striped table-bordered table-hover'><tr><th>Tipo</th><th>Nombre</th><th>Imagen</th><th>Estado</th><th></th></tr>";
+        while (! $db->EndOfSeek()) {
+            $row = $db->Row();
+            $file=$row->nombre;
+            $ext=substr($file, -4); 
+            $ext=strtolower($ext);
+            $imagen='"../spc/upload/'.$row->nombre.'"';
+            $imagen='"'.$row->nombre.'"';
+            $img="";
+            //echo "<div style='min-width:70px; float:left; display:block; padding:5px; '><center>";
+            if (($ext==".jpg")||($ext==".gif")||($ext==".png")||($ext=="jpeg")){
+                /*echo "<img  src='../spc/upload/".$row->nombre."'  style='height:50px; border-color:#cecece; border-width:1px; border-style:solid; padding:5px; cursor:pointer' onclick='MostrarPDF(".$imagen.")'/>";	*/
+                $img="<img  src='../spc/upload/".$row->nombre."'  style='height:50px; padding:5px; cursor:pointer' onclick='MostrarPDF(".$imagen.",".$cod.")'/>";
+            }else if(($ext=="pdf")||($ext=="PDF")){
+                /*echo "<img  src='../images/pdf.png'  style='height:50px; border-color:#cecece; border-width:1px; border-style:solid; padding:5px; cursor:pointer' onclick='MostrarPDF(".$imagen.")'/>";	*/
+                $img ="<img  src='../images/pdf.png'  style='height:50px; padding:5px; cursor:pointer' onclick='MostrarPDF(".$imagen.",".$cod.")'/>";
+            }else{
+                $img ="<img  src='../images/file.png'   style='height:50px; padding:5px; cursor:pointer' onclick='MostrarPDF(".$imagen.",".$cod.")'/>";	
+            }
+            echo "<tr><th>".$row->tipoArchivo."</th><th>".$row->nombre."</th><th>".$img."</th><th>".$row->estado."</th><th></th></tr>";
+            //echo "<br>".$row->nombre."</center></div>";
+        }
+        //echo "</td></tr></table>";
+        echo "</table>";
+
+    }
+    //--------------------------------------------------------------------------------------------------------    
+    public function ListarImagenes2($cod){
+        $db = new MySQL();
+        if ($db->Error()) $db->Kill();
+        $consulta="SELECT a.*, ta.descripcion as tipoArchivo, case when a.baja='0' then 'Vigente' else 'Eliminado' end as estado FROM archivos as a left join tipo_archivo as ta on ta.codTipoArchivo=a.codTipoArchivo  where codProspecto=".$cod;
+        if (! $db->Query($consulta)) $db->Kill();
+        return $db;
+    }
+    //------------------------------------------------------
+    public function ObtenerJefes($codigo){
+        $consulta="
+select p.correo 
+from usuario as u
+left join persona as p on p.codPersona = u.codPersona
+where codTipoUsuario in (select codTipoUsuario from tipousuario where descripcion like '%Jefatura%')
+and codOficina in (select codOficina from usuario where codUsuario='$codigo') and correo is not null and correo like '%@%'
+";
+        $db = new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "vacio";
+        }else{
+            if (! $db->Query($consulta)) {
+                $db->Kill();
+                return "vacio";
+            }else{
+                return $db;
+            }
+        }
+    }
+    //------------------------------------------------------
+    function Eliminar($codProspecto, $motivo){
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }
+        $consulta="update prospecto set estado=3, codMotivoSuspension=$motivo where codProspecto=$codProspecto ";
+        if (! $db->Query($consulta)){ 
+            $this->mensaje=$consulta;
+            return false;
+        }
+        return true;
+    }
+
+    //------------------------------------------------------
+    function Reactivar($codProspecto){
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }
+        $consulta="update prospecto set estado=1 where codProspecto=$codProspecto ";
+        if (! $db->Query($consulta)){ 
+            $this->mensaje=$consulta;
+            return false;
+        }
+        return true;
+    }
+    //------------------------------------------------------
+    public function ObtenerDetallePago($codigo){
+        $consulta="
+SELECT f.descripcion as formaPago, ifnull(p.monto,0) as monto, 
+ifnull(p.tasa,0) as tasa, ifnull(p.cuotas,0) as cuotas, 
+ifnull(p.periodicidad,0) as periodicidad
+FROM forma_pago_prospecto as p 
+left join forma_pago as f on f.codFormaPago=p.codFormaPago
+where p.codFormaPagoProspecto=$codigo
+";
+        $db = new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return "vacio";
+        }else{
+            if (!$db->Query($consulta)){
+                $db->Kill();
+                return "vacio";
+            }else{
+                $db->MoveFirst();
+                return $db->Row();
+            }
+        }
+    }
+    //------------------------------------------------------
+    public function Cerrable($codigo){
+        $consulta="
+SELECT  vp.* from vehiculo_prospecto as vp
+left join vehiculo as v on v.codVehiculo=vp.codVehiculo
+where vp.codProspecto=$codigo and v.codEstadoCom=4
+";
+        $db = new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }else{
+            if (!$db->Query($consulta)){
+                $db->Kill();
+                return false;
+            }else{
+                if ($db->RowCount()>0){
+                    return false;
+                }else{
+                    return true;
+                }
+            }
+        }
+    }
+    //------------------------------------------------------
+    public function Calendario($codigo){
+        $consulta="
+select t1.day as fecha, day(t1.day) as dia, month(t1.day) as mes, 
+year(t1.day) as anio, WEEKDAY(t1.day)+1 as dian, 
+IFNULL(t2.cantidad ,0) as cantidad
+from (
+SELECT  DATE_FORMAT(SYSDATE(),'%Y-%m-%d') + INTERVAL t.n - 1 DAY day
+FROM tally t
+WHERE t.n <= DATEDIFF(LAST_DAY(ADDDATE(SYSDATE(), INTERVAL 30 DAY)),  DATE_FORMAT(SYSDATE(),'%Y-%m-%d') ) + 1
+) as t1
+left join (
+select DATE_FORMAT(fechaProxContacto,'%Y-%m-%d') as day, count(*) as cantidad 
+from seguimiento
+left join prospecto as p on p.codProspecto=seguimiento.codProspecto
+where completado='0' and fechaProxContacto>SYSDATE()  and p.codUsuario='$codigo'
+group by DATE_FORMAT(fechaProxContacto,'%Y-%m-%d')
+order by DATE_FORMAT(fechaProxContacto,'%Y-%m-%d') asc
+limit 30
+) as t2 on cast(t1.day as date)= cast(t2.day as date)
+order by t1.day asc limit 30";
+        $db = new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }else{
+            if (!$db->Query($consulta)){
+                $db->Kill();
+                return false;
+            }else{
+                return $db;
+            }
+        }
+    }
+    //***************
+    function CambiarFacturacion($cod, $fecha){
+        $consulta="
+update vehiculo set fechaFacturacion='$fecha' where codVehiculo='$cod' and codEstadoCom='4' and fechaFacturacion is not null";
+        $db = new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }else{
+            if (!$db->Query($consulta)){
+                $db->Kill();
+                return false;
+            }else{
+                return true;
+            }
+        }
+    }
+    //-------------------------------------------------------------------------------------------------------- 
+    function Clonar($codProspecto){
+        $consulta="insert into prospecto (nombre, ci, ext, telefono, telefono2, esEmpresa, nombreContacto, telefonoContacto,
+ estado, codMotivoSuspension, codUsuario, codOrigenProspecto, codMedio,
+notas, codPersona, fechaCreacion, fechaCierre, email)
+select nombre, ci, ext, telefono, telefono2, esEmpresa, nombreContacto, telefonoContacto,
+1 as estado, 0 as codMotivoSuspension, codUsuario, codOrigenProspecto, codMedio,
+DATE_FORMAT(SYSDATE(),'%d-%m-%Y: Clonación prospecto $codProspecto <br>') as notas, codPersona,
+SYSDATE() as fechaCreacion, NULL as fechaCierre, email
+ from prospecto where codProspecto=$codProspecto;";
+        
+        // Creo una nueva conexion 
+        $db= new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }
+        // Habilito excepciones 
+        $db->ThrowExceptions = true;
+        if (! $db->TransactionBegin()) $db->Kill();
+
+        $success = true;
+        $sql = $consulta;
+
+        if (!$db->Query($sql)){ 
+            $success = false;
+        }
+        
+        $NcodProspecto=$db->GetLastInsertID();
+        
+        if ($success) {
+            //clonar documentos
+            $consulta="insert into archivos (codTipoArchivo, codProspecto, nombre, fecha, baja)
+select a.codTipoArchivo, $NcodProspecto as codProspecto, a.nombre, SYSDATE() as fecha, a.baja
+from archivos  as a
+inner join tipo_archivo as t on t.codTipoArchivo=a.codTipoArchivo
+where t.descripcion in ('Documento identidad cliente','Documento identidad conyugue',
+'Formulario declaracion de bienes e ingresos','Fotos','NIT','Poder representante legal',
+'Aviso de Cobranza de Luz/Agua','Otros Documentos')
+and a.codProspecto=$codProspecto";
+            $sql=$consulta;
+            if (!$db->Query($sql)){ 
+                $success = false;
+            }
+        }
+        // Si hizo todo bien
+        if ($success) {            
+            if (! $db->TransactionEnd()) {
+                $db->Kill();				
+            }		
+            return $NcodProspecto;
+        } else { 	
+            if (! $db->TransactionRollback()) {
+                $db->Kill();
+            }
+        }
+        return false;
+    }
+    //-------------------------------------------------------------------------------------------------------------
+    function CambiarLugarEntrega($codVpLugEntrega, $codentrega){
+        $consulta="update vehiculo_prospecto  set lugarEntrega='$codentrega' where codVehiculoprospecto='$codVpLugEntrega' ";
+        $db = new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }else{
+            if (!$db->Query($consulta)){
+                $db->Kill();
+                return false;
+            }else{
+                return true;
+            }
+        }
+        
+    }
+    //-------------------------------------------------------------------------------------------------------------
+    function AgregarContacto($codprospecto, $nombre, $cargo, $telefono, $email){
+        $consulta="insert into contactos(codProspecto, nombre, cargo, telefono, email, baja) values('$codprospecto', '$nombre', '$cargo', '$telefono', '$email', '0') ";
+        $db = new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }else{
+            if (!$db->Query($consulta)){
+                $db->Kill();
+                return false;
+            }else{
+                return true;
+            }
+        }
+        
+    }
+    //-------------------------------------------------------------------------------------------------------------
+    function EditarContacto($codcontacto, $nombre, $cargo, $telefono, $email){
+        $consulta="update contactos set nombre='$nombre', cargo='$cargo', telefono='$telefono', email='$email' where codContacto='$codcontacto' ";
+        
+        $db = new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }else{
+            if (!$db->Query($consulta)){
+                $db->Kill();
+                return false;
+            }else{
+                return true;
+            }
+        }
+        
+    }
+    //-------------------------------------------------------------------------------------------------------------
+    function EliminarContacto($codcontacto){
+        $consulta="update contactos set baja='1' where codContacto='$codcontacto' ";
+        
+        $db = new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }else{
+            if (!$db->Query($consulta)){
+                $db->Kill();
+                return false;
+            }else{
+                return true;
+            }
+        }
+        
+    }
+    //-------------------------------------------------------------------------------------------------------------
+    function ListarContactos($codProspecto){
+        $consulta="select * from  contactos where baja='0' and codProspecto='$codProspecto' ";
+        $db = new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }else{
+            if (!$db->Query($consulta)){
+                $db->Kill();
+                return false;
+            }else{
+                return $db;
+            }
+        }        
+    }
+    //------------------------------------------------------------------------------------------------------------
+    function EditarInformacion($codProspecto, $nombreobra, $tipoobra, $direccion, $tipoproyecto){
+        $consulta="update prospecto set nombreObra='$nombreobra', codTipoObra='$tipoobra', direccionObra='$direccion', codTipoProyecto='$tipoproyecto' where codProspecto='$codProspecto' ";
+        $db = new MySQL();
+        if ($db->Error()){ 
+            $db->Kill();
+            return false;
+        }else{
+            if (!$db->Query($consulta)){
+                $db->Kill();
+                return false;
+            }else{
+                return $db;
+            }
+        }
+    }
+}
+?>

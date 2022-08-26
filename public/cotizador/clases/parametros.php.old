@@ -1,0 +1,911 @@
+<?php
+
+include_once ("../clases/mysql.class.php");
+include_once ("../clases/usuario.php");
+
+class parametros{
+
+	public $mensaje="";
+    
+	public function DropDownSistemas(){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM sistema where baja='0' ")) $db->Kill();
+		$db->MoveFirst();
+		
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+			echo "<option value='".$row->codSistema."'>".$row->descripcion."</option>";						
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownSoporte(){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT sop.codSoporte, CONCAT(per.nombre, ' ', per.paterno ) as soporte FROM soporte sop left join persona  per on per.codPersona=sop.codPersona")) $db->Kill();
+		$db->MoveFirst();
+		
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+			echo "<option value='".$row->codSoporte."'>".$row->soporte."</option>";						
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownExtensiones($ext=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM extension ")) $db->Kill();
+		$db->MoveFirst();
+		
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+			if ($ext==$row->descripcion){
+                echo "<option value='".$row->codExtension."' selected>".$row->descripcion."</option>";
+            }else{
+                echo "<option value='".$row->codExtension."'>".$row->descripcion."</option>";
+            }
+		}
+	}
+	//***********************************************************************************************
+	public function DropDownEstados(){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM estado where baja='0' ")) $db->Kill();
+		$db->MoveFirst();
+		
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+			echo "<option value='".$row->codEstado."'>".$row->descripcion."</option>";						
+		}
+				
+	}
+    //***********************************************************************************************
+	public function DropDownEstadosProspectos($codestado){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM estado_prospecto where activo='1' ")) $db->Kill();
+		$db->MoveFirst();
+		
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            $selected="";
+            if ($codestado==$row->codEstadoProspecto) $selected="selected";
+			echo "<option value='".$row->codEstadoProspecto."' $selected >".$row->descripcion."</option>";						
+		}
+				
+	}
+    //***********************************************************************************************
+	public function DropDownEstadoCom($estado="", $codigo=""){
+		$db = new MySQL();
+        echo "<option value='0'>Seleccionar</option>";
+		
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM estado_com where baja='0' ")) $db->Kill();
+		$db->MoveFirst();
+		$selected="";
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if (($estado==$row->nombre)||($codigo==$row->codEstadoCom)){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+			echo "<option value='".$row->codEstadoCom."' $selected>".$row->nombre."</option>";						
+		}
+				
+	}
+    //***********************************************************************************************
+	public function DropDownUbicaciones($ubicacion="", $codUbicacion=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM ubicacion where baja='0' ")) $db->Kill();
+		$db->MoveFirst();
+		$selected="";
+        echo "<option value='0'>Seleccionar</option>";
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if (($ubicacion==$row->nombre)||($codUbicacion==$row->codUbicacion)){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+			echo "<option value='".$row->codUbicacion."' $selected>".$row->nombre."</option>";						
+		}
+				
+	}
+    //***********************************************************************************************
+	public function DropDownEstadoOp($estado){
+		$db = new MySQL();
+        echo "<option value='0'>Seleccionar</option>";
+		
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM estado_op where baja='0' ")) $db->Kill();
+		$db->MoveFirst();
+		$selected="";
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if ($estado==$row->nombre){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+			echo "<option value='".$row->codEstadoOp."' $selected>".$row->nombre."</option>";						
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownTipoSolucion(){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM tiposolucion where baja='0' ")) $db->Kill();
+		$db->MoveFirst();
+		
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+			echo "<option value='".$row->codTipoSolucion."'>".$row->descripcion."</option>";						
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownPais(){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM pais ")) $db->Kill();
+		$db->MoveFirst();
+		
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+			echo "<option value='".$row->codPais."'>".$row->descripcion."</option>";						
+		}
+				
+	}
+    //***********************************************************************************************
+    public function DropDownProveedor(){
+        $db = new MySQL();
+        if ($db->Error()) $db->Kill();
+        if (! $db->Query("SELECT pro.codProveedor, emp.nombre as proveedor 
+        FROM proveedor as pro left join empresa as emp on emp.codEmpresa=pro.codEmpresa ")) $db->Kill();
+        $db->MoveFirst();
+
+        while (! $db->EndOfSeek()) {
+            $row = $db->Row();
+            echo "<option value='".$row->codProveedor."'>".$row->proveedor."</option>";						
+        }
+
+    }
+
+	//***********************************************************************************************
+	public function DropDownTipoIncidente($codSistema){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM tipoincidente where baja='0' and codSistema=$codSistema ")) $db->Kill();
+		$db->MoveFirst();
+		$cont=0;
+		echo "<option value='0'>Seleccionar</option>";
+		while (! $db->EndOfSeek()) {
+			$cont=$con+1;
+			$row = $db->Row();
+			//echo "<hr>123";
+			echo "<option value='".$row->codTipoIncidente."'>".$row->descripcion."</option>";	
+			//echo "456";					
+		}
+		
+		//echo "SELECT * FROM tipoincidente where baja='0' and codSistema=$codSistema ";
+				
+	}
+	//***********************************************************************************************
+	public function DropDownOficina($codOficina=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM oficina where baja='0' ")) $db->Kill();
+		$db->MoveFirst();
+		$cont=0;
+		echo "<option value='0'>Seleccionar</option>";
+		while (! $db->EndOfSeek()) {
+            $selected="";
+			$cont=$con+1;
+			$row = $db->Row();
+			if ($row->codOficina==$codOficina) $selected="selected";
+			echo "<option value='".$row->codOficina."' $selected>".$row->descripcion."</option>";						
+		}
+		
+		//echo "SELECT * FROM tipoincidente where baja='0' and codSistema=$codSistema ";
+				
+	}
+    //***********************************************************************************************
+	public function DropDownOficinaFiltrado($codVendedor,$codOficina=""){
+			$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+        //--------------------------------------------------------------------------------
+            $condicion="";
+            $iUsuario = new Usuario();
+            $iUsuario->RecuperarSesionCod($codVendedor);
+            $perfil= $iUsuario->obtenerPerfil();
+            if (($perfil!="Gerencia")&&($perfil!="Superusuario")){
+               $condicion.=" and o.codOficina in (select distinct codOficina from usuario where codUsuario='$codVendedor')";
+            }
+        //--------------------------------------------------------------------------------
+        $consulta=" select o.codOficina, o.descripcion as oficina from oficina as o where 1=1 ".$condicion." order by o.descripcion ";
+		if (! $db->Query($consulta)) $db->Kill();
+		$db->MoveFirst();
+		$selected="";
+        if (($perfil=="Gerencia")||($perfil=="Superusuario")){
+            echo "<option value=''>Todos</option>";
+        }else{
+            //echo "<option value=''>".$perfil."</option>";
+        }
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if ($seleccionado==$row->codOficina){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+			echo "<option value='".$row->codOficina."' $selected>".ucwords(strtolower($row->oficina))."</option>";						
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownOrigenProspectos($origen="", $codorigen=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM origen_prospecto")) $db->Kill();
+		$db->MoveFirst();
+		
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if (($origen==$row->descripcion)||($codorigen==$row->codOrigenProspecto)){
+                echo "<option value='".$row->codOrigenProspecto."' selected>".$row->descripcion."</option>";						
+            }else{
+                echo "<option value='".$row->codOrigenProspecto."'>".$row->descripcion."</option>";						
+            }
+			
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownTipoMedio($tipo=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM tipo_medio")) $db->Kill();
+		$db->MoveFirst();
+		
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if ($tipo==$row->descripcion){
+                echo "<option value='".$row->codTipoMedio."' selected >".$row->descripcion."</option>";						
+            }else{
+                echo "<option value='".$row->codTipoMedio."'>".$row->descripcion."</option>";						
+            }
+			
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownMedio($codtipo){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM medio where codTipoMedio=$codtipo order by descripcion")) $db->Kill();
+		$db->MoveFirst();
+		
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+			echo "<option value='".$row->codMedio."'>".$row->descripcion."</option>";						
+		}
+				
+	}
+    //***********************************************************************************************
+	public function DropDownMedio2($medio=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM medio where codTipoMedio=(select codTipoMedio from medio where descripcion='$medio' limit 1) order by descripcion")) $db->Kill();
+		$db->MoveFirst();
+		
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if ($medio==$row->descripcion){
+                echo "<option value='".$row->codMedio."' selected>".$row->descripcion."</option>";						
+            }else{
+                echo "<option value='".$row->codMedio."'>".$row->descripcion."</option>";						
+            }
+			
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownTipoContacto(){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("select * from tipo_contacto where baja='0'")) $db->Kill();
+		$db->MoveFirst();
+		
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+			echo "<option value='".$row->codTipoContacto."'>".$row->descripcion."</option>";						
+		}
+				
+	}
+    //***********************************************************************************************
+	public function DropDownTipoArchivo(){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("select * from tipo_archivo where baja='0'")) $db->Kill();
+		$db->MoveFirst();
+		
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+			echo "<option value='".$row->codTipoArchivo."'>".$row->descripcion."</option>";						
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownMarca($marca="", $codmar="", $codUsuario=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+        $logico=false;
+        $db->Query("SELECT * FROM usuariomarca where codUsuario=$codUsuario and baja='0' ");
+        $consulta="select * from marca ";
+        if($db->rowCount()>0){
+            $logico=true;
+            $consulta="select m.* from marca as m inner join usuariomarca as um on um.codMarca=m.codMarca where um.codUsuario=$codUsuario and um.baja='0' ";
+        }
+        
+		if (!$db->Query($consulta)) $db->Kill();
+		$db->MoveFirst();
+		$selected="";
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if (($marca==$row->descripcion)||($codmar==$row->codMarca)){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+			echo "<option value='".$row->codMarca."' $selected>".$row->descripcion."</option>";						
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownModelo($codmarca, $modelo="", $codmod=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+        $consulta="SELECT * FROM modelo where codMarca='$codmarca' order by nombre";
+        $this->mensaje=$consulta;
+		if (! $db->Query($consulta)) $db->Kill();
+		$db->MoveFirst();
+        $selected="";
+		echo "<option value='0'>Seleccionar</option>";
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if (($modelo==$row->nombre)||($codmod==$row->codModelo)){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+			echo "<option value='".$row->codModelo."' $selected >".$row->nombre."</option>";						
+		}
+				
+	}	
+    //***********************************************************************************************
+    public function DropDownCiudad($codCiudad=""){
+        $db = new MySQL();
+        if ($db->Error()) $db->Kill();
+        echo "<option value='0'>Seleccionar</option>";
+
+        if (! $db->Query("select * from ciudad order by nombre")) $db->Kill();
+        $db->MoveFirst();
+        $selected="";
+        while (! $db->EndOfSeek()) {
+            $row = $db->Row();
+            if ($codCiudad==$row->codCiudad){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+            echo "<option value='".$row->codCiudad."' $selected>".$row->nombre."</option>";						
+        }
+
+    }
+	//***********************************************************************************************
+	public function DropDownColor($codmodelo, $codcolor=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		echo "<option value='0'>Seleccionar</option>";
+		
+        if (! $db->Query("SELECT * FROM color where codModelo='$codmodelo' order by nombre")) $db->Kill();
+		$db->MoveFirst();
+		$selected="";
+        while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if ($codcolor==$row->codColor){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+			echo "<option value='".$row->codColor."' $selected>".$row->nombre."</option>";						
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownColorInterno($codmodelo, $codcolorinterior){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM color_int where codModelo=$codmodelo order by nombre")) $db->Kill();
+		$db->MoveFirst();
+		echo "<option value='0'>Seleccionar</option>";
+		$selected="";
+        while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if ($codcolorinterior==$row->codColorInt){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+			echo "<option value='".$row->codColorInt."' $selected>".$row->nombre."</option>";						
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownTipo($codmodelo, $codTipo=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM tipo where codModelo='$codmodelo' order by nombre")) $db->Kill();
+		$db->MoveFirst();
+		echo "<option value='0'>Seleccionar</option>";
+        $selected="";
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if ($codTipo==$row->codTipo){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+			echo "<option value='".$row->codTipo."' $selected>".$row->nombre."</option>";						
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownSubTipo($codtipo, $codSubTipo=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM subtipo where codTipo=$codtipo order by nombre")) $db->Kill();
+		$db->MoveFirst();
+		echo "<option value='0'>Seleccionar</option>";
+        $selected="";
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+             if ($codSubTipo==$row->codSubTipo){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+			echo "<option value='".$row->codSubTipo."' $selected>".$row->nombre."</option>";						
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownAnioComercial($codmodelo="", $anio=""){
+		$db = new MySQL();
+        $condicion="";
+		if ($db->Error()) $db->Kill();
+        if ($codmodelo!=""){
+            $condicion=" and codModelo=$codmodelo";
+        }
+        $consulta="select distinct anMod from vehiculo where 1=1 $condicion union select distinct anFab from vehiculo where '1'='1' $condicion union select year(SYSDATE()) union select year(SYSDATE()) + 1  order by anMod desc ";
+        //echo $consulta;
+		if (! $db->Query($consulta)) $db->Kill();
+		$db->MoveFirst();
+		echo "<option value='0'>Seleccionar</option>";
+        $selected="";
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if ($anio==$row->anMod){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+			echo "<option value='".$row->anMod."' $selected>".$row->anMod."</option>";						
+		}
+				
+	}
+    //***********************************************************************************************
+    public function DropDownGestiones($gestion=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("select distinct anio from (
+SELECT distinct anMod anio from vehiculo union all SELECT distinct anFab anio from vehiculo union all select Year(SYSDATE()) as anio union all select Year(SYSDATE()) + 1 as anio union all select Year(SYSDATE()) -1 as anio ) as tabla order by anio desc ")) $db->Kill();
+		$db->MoveFirst();
+		while (! $db->EndOfSeek()) {
+			$selected="";
+            $row = $db->Row();
+            if ($row->anio==$gestion) $selected="selected";
+			echo "<option value='".$row->anio."' $selected>".$row->anio."</option>";						
+		}
+				
+	}
+	//***********************************************************************************************
+	public function DropDownFormaPago(){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM forma_pago where baja='0' order by descripcion")) $db->Kill();
+		$db->MoveFirst();
+		echo "<option value='0'>Seleccionar</option>";
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+			echo "<option value='".$row->codFormaPago."'>".$row->descripcion."</option>";						
+		}
+				
+	}
+	//*************************************************************************************************************************
+	//																								******************************
+	//	AQUI EMPIEZAN LAS LISTAS																	***********************************
+	//																								****************************************
+	//*******************************************************************************************************************************************
+	public function listarColegios(){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM colegio")) $db->Kill();
+		$db->MoveFirst();
+		echo "<table class='tablesorter table table-bordered hasFilters tablesorter-bootstrap'>";
+		echo "<tr class='tablesorter-headerRow'>";
+		echo "<th class='tablesorter-header bootstrap-header'><div class='tablesorter-wrapper' style='position:relative;height:100%;width:100%'><div class='tablesorter-header-inner'>
+Codigo <i class='tablesorter-icon bootstrap-icon-unsorted'></i></div></div></th>";
+		echo "<th class='tablesorter-header bootstrap-header'><div class='tablesorter-wrapper' style='position:relative;height:100%;width:100%'><div class='tablesorter-header-inner'>
+Nombre colegio <i class='tablesorter-icon bootstrap-icon-unsorted'></i></div></div></th>";
+		echo "<th class='tablesorter-header bootstrap-header'><div class='tablesorter-wrapper' style='position:relative;height:100%;width:100%'><div class='tablesorter-header-inner'>
+Estado <i class='tablesorter-icon bootstrap-icon-unsorted'></i></div></div></th>";
+		echo "</tr>";
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+			echo "<tr class='odd'>";
+			echo "<td>".$row->codColegio. "</td>";
+			echo "<td>".$row->descripcion. "</td>";
+			if ($row->baja=="0"){
+				echo "<td>Activo</td>";
+			}else{
+				echo "<td>Eliminado</td>";
+			}
+			echo "</tr>";
+		}
+		echo "</table>";		
+	}
+	
+	//*****************************************************
+	public function ObtenerSistema($codSistema){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM sistema where codSistema='".$codSistema."' ")) $db->Kill();
+		$db->MoveFirst();
+		if (!$db->EndOfSeek()) {
+			$row = $db->Row();
+			return $row->descripcion;
+		}				
+	}
+	//*****************************************************
+	public function ObtenerEstado($codEstado){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM estado where codEstado='".$codEstado."' ")) $db->Kill();
+		$db->MoveFirst();
+		if (!$db->EndOfSeek()) {
+			$row = $db->Row();
+			return $row->descripcion;
+		}
+				
+	}
+	
+	//*****************************************************
+	public function ObtenerTipo($codTipo){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM tipoincidente where codTipoIncidente='".$codTipo."' ")) $db->Kill();
+		$db->MoveFirst();
+		if (!$db->EndOfSeek()) {
+			$row = $db->Row();
+			return $row->descripcion;
+		}
+				
+	}
+	//*****************************************************
+	public function ObtenerProductoxDesc($desc){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM producto where codigo='".$desc."' limit 1 ")) $db->Kill();
+		$db->MoveFirst();
+		if (!$db->EndOfSeek()) {
+			$row = $db->Row();
+			return $row->descripcion;
+		}
+				
+	}
+	//*****************************************************
+	public function ObtenerFecha(){
+		$today = getdate();
+		$dia=$today["mday"];
+		$mes=$this->ConvertirMes($today["mon"]);
+		$anio=$today["year"];
+		echo "$dia de $mes $anio";
+	}
+	//*****************************************************
+	public function ObtenerOficina($codOficina){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM oficina where codoficina='".$codOficina."' ")) $db->Kill();
+		$db->MoveFirst();
+		if (!$db->EndOfSeek()) {
+			$row = $db->Row();
+			return $row->descripcion;
+		}
+				
+	}
+	//*****************************************************
+	public function ConvertirMes($nummes){
+		switch ($nummes) {
+			case "1":
+				return "Enero";
+			case "2":
+				return "Febrero";
+			case "3":
+				return "Marzo";
+			case "4":
+				return "Abril";
+			case "5":
+				return "Mayo";
+			case "6":
+				return "Junio";
+			case "7":
+				return "Julio";
+			case "8":
+				return "Agosto";
+			case "9":
+				return "Septiembre";
+			case "10":
+				return "Octubre";
+			case "11":
+				return "Noviembre";
+			case "12":
+				return "Diciembre";				
+			default:
+				return "Mes no encontrado:".$nummes.".";
+		}
+	}
+	//*****************************************************
+	public function ListarEmpresas(){
+		$consulta="select * from empresa where baja='0'";		
+		$db = new MySQL();
+		if ($db->Error()){ 
+			$db->Kill();
+			return "vacio";
+		}else{
+			if (! $db->Query($consulta)) {
+				$db->Kill();
+				return "vacio";
+			}else{
+				return $db;
+			}
+		}
+	}
+	//*****************************************************
+	public function ListarOficinas(){
+		$consulta="select * from oficina where baja='0' ";		
+		$db = new MySQL();
+		if ($db->Error()){ 
+			$db->Kill();
+			return "vacio";
+		}else{
+			if (! $db->Query($consulta)) {
+				$db->Kill();
+				return "vacio";
+			}else{
+				return $db;
+			}
+		}
+	}
+	//*****************************************************
+	public function ListarRoles(){
+		$consulta="
+		select * from rol
+		";
+		
+		$db = new MySQL();
+		if ($db->Error()){ 
+			$db->Kill();
+			return "vacio";
+		}else{
+			if (! $db->Query($consulta)) {
+				$db->Kill();
+				return "vacio";
+			}else{
+				return $db;
+			}
+		}
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------------------------------------
+	
+	public function resultadoAlerta($mensaje){
+		return "<div class='alert'><button type='button' class='close' data-dismiss='alert'>×</button><strong>Alerta!</strong> ".$mensaje."</div>";
+	}
+	public function resultadoError($mensaje){
+		return "<div class='alert alert-error'><button type='button' class='close' data-dismiss='alert'>×</button><strong>Error!</strong> ".$mensaje."</div>";
+	}
+	public function resultadoOk($mensaje){
+		return "<div class='alert alert-info'><button type='button' class='close' data-dismiss='alert'>×</button><strong>Correcto!</strong> ".$mensaje."</div>";
+	}
+    
+    //**********************************************
+   public function RandomString($length=10,$uc=TRUE,$n=TRUE,$sc=FALSE)
+    {
+        $source = 'abcdefghijklmnopqrstuvwxyz';
+        if($uc==1) $source .= 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        if($n==1) $source .= '1234567890';
+        if($sc==1) $source .= '|@#~$%()=^*+[]{}-_';
+        if($length>0){
+            $rstr = "";
+            $source = str_split($source,1);
+            for($i=1; $i<=$length; $i++){
+                mt_srand((double)microtime() * 1000000);
+                $num = mt_rand(1,count($source));
+                $rstr .= $source[$num-1];
+            }
+
+        }
+        return $rstr;
+    }
+//***********************************************************************************************
+	public function DropDownVendedores($codVendedor=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query(" select u.codUsuario, u.usuario, CONCAT(nombre,' ', apePat) as nombre
+from usuario as u left join persona as p on p.codPersona=u.codPersona ")) $db->Kill();
+		$db->MoveFirst();
+		$selected="";
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if ($codVendedor==$row->codUsuario){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+			echo "<option value='".$row->codUsuario."' $selected>".strtolower($row->nombre)." - ".strtolower($row->usuario)."</option>";						
+		}
+				
+	}
+//***********************************************************************************************
+	public function DropDownVendedoresFiltrado($codVendedor, $seleccionado){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+        //--------------------------------------------------------------------------------
+            $condicion="";
+            $iUsuario = new Usuario();
+            $iUsuario->RecuperarSesionCod($codVendedor);
+            $perfil= $iUsuario->obtenerPerfil();
+            if (($perfil=="Vendedor")||($perfil=="Operaciones")){
+                $condicion.=" and u.codUsuario='$codVendedor' ";
+            }
+            if ($perfil=="Jefatura"){
+                $condicion.=" and u.codUsuario in (select codUsuario from usuario where codOficina=(select codOficina from usuario where codusuario='$codVendedor')) ";
+            }
+        //--------------------------------------------------------------------------------
+        $consulta=" select u.codUsuario, u.usuario, CONCAT(nombre,' ', apePat) as nombre
+from usuario as u left join persona as p on p.codPersona=u.codPersona where 1=1 ".$condicion." order by CONCAT(nombre,' ', apePat)";
+		if (! $db->Query($consulta)) $db->Kill();
+		$db->MoveFirst();
+		$selected="";
+        if (($perfil!="Vendedor")&&($perfil!="Operaciones")){
+            echo "<option value=''>Todos</option>";
+        }
+		while (! $db->EndOfSeek()) {
+			$row = $db->Row();
+            if ($seleccionado==$row->codUsuario){
+                $selected="selected";
+            }else{
+                $selected="";
+            }
+			echo "<option value='".$row->codUsuario."' $selected>".strtolower($row->nombre)." (".strtolower($row->usuario).")</option>";						
+		}
+				
+	}
+//***********************************************************************************************
+	public function DropDownTipoUsuario($codTipoUsuario=""){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM tipousuario where baja='0' ")) $db->Kill();
+		$db->MoveFirst();            
+		while (! $db->EndOfSeek()) {
+			$selected="";
+            $row = $db->Row();
+            if ($row->codTipoUsuario==$codTipoUsuario) $selected="selected";
+			echo "<option value='".$row->codTipoUsuario."' $selected >".$row->descripcion."</option>";						
+		}
+				
+	}
+    //***********************************************************************************************
+    public function DropDownEmpresa($codEmpresa=""){
+        $db = new MySQL();
+        if ($db->Error()) $db->Kill();
+        if (! $db->Query("SELECT * FROM empresa where baja='0' ")) $db->Kill();
+        $db->MoveFirst();            
+        while (! $db->EndOfSeek()) {
+            $selected="";
+            $row = $db->Row();
+            if ($row->codEmpresa==$codEmpresa) $selected="selected";
+            echo "<option value='".$row->codEmpresa."' $selected >".$row->nombre."</option>";						
+        }
+
+    }
+    //***********************************************************************************************
+    public function DropDownEmpConcesionario($codEmpresa=""){
+        $db = new MySQL();
+        if ($db->Error()) $db->Kill();
+        if (! $db->Query("SELECT * FROM empresa where baja='0' and escomercial='1' and esconcesionario='1' ")) $db->Kill();
+        $db->MoveFirst();            
+        while (! $db->EndOfSeek()) {
+            $selected="";
+            $row = $db->Row();
+            if ($row->codEmpresa==$codEmpresa) $selected="selected";
+            echo "<option value='".$row->codEmpresa."' $selected >".$row->nombre."</option>";						
+        }
+
+    }
+//***********************************************************************************************
+	public function DropDownMotivoBaja(){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT * FROM motivo_suspension where baja='0' ")) $db->Kill();
+		$db->MoveFirst();            
+		while (! $db->EndOfSeek()) {
+			$selected="";
+            $row = $db->Row();
+			echo "<option value='".$row->codMotivoSuspension."' $selected >".$row->descripcion."</option>";						
+		}
+				
+	}
+//*****************************************************
+	public function ObtenerVendedor($codUsuario){
+		$db = new MySQL();
+		if ($db->Error()) $db->Kill();
+		if (! $db->Query("SELECT CONCAT(p.nombre, ' ', p.apePat) as vendedor FROM usuario as u left join persona as p on p.codPersona= u.codPersona where u.codUsuario='".$codUsuario."' ")) $db->Kill();
+		$db->MoveFirst();
+		if (!$db->EndOfSeek()) {
+			$row = $db->Row();
+			return $row->vendedor;
+		}				
+	}
+//*****************************************************
+    function ObtenerMes($val){
+        switch($val)
+        {
+            case '1';
+                return "Enero";
+            case '2';
+                return "Febrero";
+            case '3';
+                return "Marzo";
+            case '4';
+                return "Abril";
+            case '5';
+                return "Mayo";
+            case '6';
+                return "Junio";
+            case '7';
+                return "Julio";
+            case '8';
+                return "Agosto";
+            case '9';
+                return "Septiembre";
+            case '10';
+                return "Octubre";
+            case '11';
+                return "Noviembre";
+            case '12';
+                return "Diciembre";
+            default;
+                return 'No hay mes';
+                break;
+        } 
+}
+    
+}
+?>

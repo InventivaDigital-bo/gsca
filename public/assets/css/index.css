@@ -1,0 +1,149 @@
+
+a{
+    color: black;
+    text-decoration: none;
+}
+
+.video{
+    margin: 10%;
+    margin-top: 3rem;
+    margin-bottom: 5rem;
+    padding: var(--m-border);
+    padding-top: 0;
+    padding-bottom: 0;
+    display: flex;
+}
+.video .image{
+    width: 50%;
+}
+.video .image img{
+    width: 100%;
+}
+.video .content{
+    width: 50%;
+    margin-left: 10%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+.video .content h2{
+    font-size: 1.5rem;
+    color: var(--c-primary);
+    font-weight: bolder;
+    margin-bottom: 1.5rem;
+}
+
+.video .content p{
+    color: var(--c-text-inactive);
+    font-weight: lighter;
+}
+
+
+
+main section {
+    width: 100%;
+}
+main section .carousel-container {
+    width: 100%;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.375rem;
+}
+main section .carousel-container .item {
+    width: 100%;
+    position: relative;
+    display: none;
+    animation: fade 0.3s ease-in-out;
+}
+main section .carousel-container .item .numbertext {
+    padding: 0.5rem 0.75rem;
+    position: absolute;
+    bottom: 2rem;
+    right: calc(50% - 0.875rem*2.5);
+    border-radius: 0.9375rem;
+    font-size: 0.875rem;
+    color: #f2f2f2;
+    background-color: #C30010;
+}
+main section .carousel-container .item .image {
+    width: 100%;
+    display: flex;
+}
+main section .carousel-container .item .image img {
+    width: 100%;
+    object-fit: contain;
+}
+main section .carousel-container .item .text {
+    width: 100%;
+    padding: 0.625rem 0.9375rem;
+    position: absolute;
+    bottom: 0;
+    font-size: 0.9rem;
+    color: #f2f2f2;
+    background-color: rgba(0, 0, 0, 0.9);
+}
+main section .carousel-container .item .text .title {
+    margin: 0.5rem 0 0 0;
+    font-size: 1.2rem;
+    font-weight: normal;
+}
+main section .carousel-container .prev,
+main section .carousel-container .next {
+    width: 2rem;
+    height: 2rem;
+    padding: 0.3125rem;
+    position: absolute;
+    top: calc(50% - 1rem);
+    user-select: none;
+    font-size: 1rem;
+    color: #f2f2f2;
+    border-radius: 50%;
+    transition: 0.6s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+main section .carousel-container:focus .prev,
+main section .carousel-container:focus .next,
+main section .carousel-container:hover .prev,
+main section .carousel-container:hover .next {
+    background-color: #C30010;
+}
+main section .carousel-container .prev {
+    left: 0.8rem;
+}
+main section .carousel-container .next {
+    right: 0.8rem;
+}
+main section .carousel-container .dots {
+    display: none;
+}
+main section .carousel-container .dots .dot {
+    width: 0.625rem;
+    height: 0.625rem;
+    margin: 0 0.125rem;
+    display: inline-block;
+    cursor: pointer;
+    border-radius: 50%;
+    background-color: #bbb;
+    transition: background-color 0.6s ease;
+}
+main section .carousel-container .dots .dot:focus, main section .carousel-container .dots .dot:hover {
+    background-color: #C30010;
+}
+@keyframes fade {
+    from {
+        opacity: 0.8;
+   }
+    to {
+        opacity: 1;
+   }
+}
+
+@media screen and (max-width: 400px) {
+    .video .content{
+        width: 50%;
+        margin-left: 5%;
+    }
+}

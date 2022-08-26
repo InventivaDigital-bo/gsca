@@ -1,0 +1,270 @@
+.title{
+    display: flex;
+    margin: 5rem 0;
+}
+.title .card{
+    background-color:var(--c-primary);
+    display: flex;
+    width: 60%;
+}
+.title .card .img img{
+    width: 100%;
+}
+.title .card .img{
+    width: 63%;
+}.title .card .img img{
+    height: 100%;
+    object-fit: cover;
+}
+.title .card .content{
+    width: 37%;
+    display: flex;
+    flex-direction: column;
+    color: var(--c-text-inactive);
+    padding: 2rem;
+}
+.title .card .content h4{
+    font-size: 1.3rem;
+    color: #d0d0d0;
+
+}
+.title .card .content p{
+    margin-top: 1rem;
+    color: white;
+    line-height: 20px;
+}
+.title .text{
+    display: flex;
+    /* justify-content: center; */
+    margin-left: 3rem;
+    width: 39%;
+    align-items: center;
+}
+.title .text h1{
+    font-size: 6rem;
+    color: var(--c-text-inactive);
+}
+.title .text h1 span{
+    font-size: 8rem;
+    color: var(--c-primary);
+}
+
+
+.quienes .title-primary h2{
+    color: var(--c-text-inactive);
+    font-size: 6rem;
+    text-align: center;
+}
+.quienes .title-primary h2 span{
+    color: var(--c-primary);
+    font-size: 6rem;
+}
+.quienes .title-primary h6{
+    color: var(--c-primary);
+    font-size: 1.9rem;
+    text-align: center;
+    font-weight: lighter;
+    margin-bottom: 5rem;
+}
+
+
+
+
+.timeline {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 5rem;
+}
+.timeline .date:nth-child(2n+1){
+    display: flex;
+    width: 80%;
+}
+.timeline .date:nth-child(2n){
+    display: flex;
+    width: 80%;
+    flex-direction: row-reverse;
+}
+.timeline .date:nth-child(2n+1) .year{
+    width: 40%;
+    color: var(--c-text-inactive);
+    display: flex;
+    align-items: center;
+    padding-right: 5rem;
+}
+.timeline .date:nth-child(2n) .year{
+    width: 40%;
+    color: var(--c-text-inactive);
+    display: flex;
+    align-items: center;
+    padding-left: 8rem;
+}
+.timeline .date:nth-child(2n+1) .year p{
+    font-size: 4rem;
+    width: 100%;
+    text-align: right;
+}
+.timeline .date:nth-child(2n) .year p{
+    font-size: 4rem;
+    width: 100%;
+    text-align: left;
+}
+.timeline .date .pointer{
+    width: 20%;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    height: inherit;
+
+}
+.timeline .date .pointer.large{
+    /* height: 100%; */
+}
+.timeline .date .description{
+    width: 40%;
+    color: var(--c-text-inactive);
+    font-size: 5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.timeline .date .description p{
+    font-size: 1.5rem;
+    height: min-content;
+    padding: 4rem 0;
+}
+
+.timeline .date:nth-child(2n+1) .point{
+    border-left: 40px solid var(--c-text-inactive);
+    border-top-left-radius: 40px;
+    border-bottom-left-radius: 40px;
+    width: 0;
+    height: 100%;
+    position: absolute;
+}
+.timeline .date:nth-child(2n) .point{
+
+    border-left: 40px solid var(--c-text-inactive);
+    border-top-right-radius: 40px;
+    border-bottom-right-radius: 40px;
+    width: 0;
+    height: 100%;
+    position: absolute;
+    margin-left: 80px;
+}
+
+.timeline .date:hover .point{
+    border-left: 40px solid var(--c-primary);
+}
+.timeline .date .point::after{
+    content: '';
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: white;
+    top: calc(50% - 17.5px);
+    right: 5px;
+    border-radius: 50%;
+}
+.timeline .date:nth-child(2n+1) .pointer .line{
+    position: absolute;
+    width: 50%;
+    top: calc(50% - 4px);
+    right: calc(50% + 17.5px);
+    border-top: var(--c-text-inactive) 3px solid;
+    z-index: -1;
+}
+.timeline .date:nth-child(2n) .pointer .line{
+    position: absolute;
+    width: 50%;
+    top: calc(50% - 4px);
+    right: calc(-50px );
+    border-top: var(--c-text-inactive) 3px solid;
+    z-index: -1;
+}
+.timeline .date:hover .pointer .line{
+    border-top: var(--c-primary) 3px solid;
+}
+.timeline .date:nth-child(2n+1) .pointer .line::after{
+    content: '';
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: var(--c-text-inactive);
+    top: calc(50% - 17.5px);
+    right: calc(100% - 30px);
+    border-radius: 50%;
+}
+.timeline .date:nth-child(2n) .pointer .line::after{
+    content: '';
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: var(--c-text-inactive);
+    top: calc(50% - 17.5px);
+    left: calc(100% - 30px);
+    border-radius: 50%;
+}
+.timeline .date:hover .pointer .line::after{
+    background-color: var(--c-primary);
+}
+
+@media screen and (max-width: 1050px) {
+    .title .text h1{
+        font-size: 5rem;
+    }
+    .title .text h1 span{
+        font-size: 6.8rem;
+    }
+}
+@media screen and (max-width: 900px) {
+    .title {
+        flex-direction: column-reverse;
+    }
+    .title .text{
+        justify-content: center;
+        margin: 0;
+        width: auto;
+    }
+    .title .card{
+        width: 100%;
+        flex-direction: column;
+    }
+    .title .card .img{
+        width: 100%;
+    }
+    .title .card .content{
+        width: 100%;
+    }
+    .quienes .title-primary h2{
+        font-size: 5rem;
+    }
+    .quienes .title-primary h2 span{
+        font-size: 5rem;
+    }
+    .quienes .title-primary h6{
+        font-size: 1.4rem
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .timeline .date:nth-child(2n) .year{
+        padding-left: 4rem;
+    }
+    .timeline .date .year p{
+        font-size: 2rem!important;
+    }
+    .timeline .date .description p{
+        font-size: 1rem;
+    }
+    .timeline .date:nth-child(2n) .point {
+        border-left: 40px solid var(--c-text-inactive);
+        border-top-right-radius: 40px;
+        border-bottom-right-radius: 40px;
+        width: 0;
+        height: 100%;
+        position: absolute;
+        margin-left: 80px;
+    }
+}

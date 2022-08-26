@@ -1,0 +1,96 @@
+.map #cbba.active_map  g path,
+.map #la_paz.active_map g path,
+.map #santa_cruz.active_map g path,
+.map #cbba:hover  g path,
+.map #la_paz:hover g path,
+.map #santa_cruz:hover g path{
+    transform-origin: center;
+    transition: all .5s ease-in;
+    fill: var(--c-primary);
+}
+.map #cbba  g path,
+.map #la_paz g path,
+.map #santa_cruz g path{
+    transform-origin: center;
+    transition: all .5s ease-in;
+}
+.map svg{
+    width: 100%;
+}
+.map {
+    width: 40%;
+    padding: 2rem 3rem;
+}
+main{
+    margin: 0 10%;
+    display: flex;
+}
+.concesionaires{
+    width: 100%;
+}
+.concesionaires .sc,
+.concesionaires .lp,
+.concesionaires .cb{
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: center;
+    display: none;
+}
+.concesionaires .sc.active-data,
+.concesionaires .lp.active-data,
+.concesionaires .cb.active-data{
+    display: flex;
+}
+.concesionaires .card{
+    width: 30%;
+    min-width: 200px;
+    padding: 1rem;
+}
+.concesionaires .card .logo{
+    padding: 1rem;
+    padding-bottom: 0;
+    border-bottom: 3px solid var(--c-text-inactive);
+}
+.concesionaires ul{
+    list-style: none;
+    margin-top: 2rem;
+}
+.concesionaires ul li {
+    margin-bottom: 1rem;
+}
+.concesionaires ul li a{
+    list-style: none;
+    display: flex;
+    color: var(--c-text-inactive);
+}
+.concesionaires ul li a img{
+    height: 1rem;
+    margin-right: 1.5rem;
+}
+@media screen and (max-width: 900px) {
+    .map {
+        padding: 4rem 1rem;
+    }
+}
+@media screen and (max-width: 500px) {
+    main{
+        flex-direction: column;
+    }
+    .concesionaires{
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    .map {
+        width: 100%;
+        padding: 2rem 3rem;
+        display: flex;
+        justify-content: center;
+    }
+    .concesionaires .card{
+        width: 30%;
+        min-width: 250px;
+        padding: 1rem;
+    }
+}

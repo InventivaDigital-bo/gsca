@@ -1,0 +1,344 @@
+body {
+    font-family: 'Helvetica', sans-serif !important;
+}
+
+
+/*Effect Hover Button*/
+
+.hvr-shutter-out-horizontal {
+    display: inline-block;
+    vertical-align: middle;
+    -webkit-transform: perspective(1px) translateZ(0);
+    transform: perspective(1px) translateZ(0);
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0);
+    position: relative;
+    background: #e1e1e1;
+    -webkit-transition-property: color;
+    transition-property: color;
+    -webkit-transition-duration: 0.3s;
+    transition-duration: 0.3s;
+}
+
+.hvr-shutter-out-horizontal:before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #231F20;
+    -webkit-transform: scaleX(0);
+    transform: scaleX(0);
+    -webkit-transform-origin: 50%;
+    transform-origin: 50%;
+    -webkit-transition-property: transform;
+    transition-property: transform;
+    -webkit-transition-duration: 0.3s;
+    transition-duration: 0.3s;
+    -webkit-transition-timing-function: ease-out;
+    transition-timing-function: ease-out;
+}
+
+.hvr-shutter-out-horizontal:hover,
+.hvr-shutter-out-horizontal:focus,
+.hvr-shutter-out-horizontal:active {
+    color: white;
+}
+
+.hvr-shutter-out-horizontal:hover:before,
+.hvr-shutter-out-horizontal:focus:before,
+.hvr-shutter-out-horizontal:active:before {
+    -webkit-transform: scaleX(1);
+    transform: scaleX(1);
+}
+
+
+/*Effect Hover Button*/
+
+#date,
+.button-date {
+    display: none;
+}
+
+.imgBrandFilter {
+    width: 50px;
+    border-radius: 10px 0 !important;
+}
+
+.owl-carousel .owl-nav button.owl-prev:hover,
+.owl-carousel .owl-nav button.owl-next:hover {
+    background-color: #CA0100 !important;
+    cursor: pointer;
+}
+
+.owl-carousel .owl-nav button.owl-prev:hover {
+    transform: translateX(-3px);
+}
+
+.owl-carousel .owl-nav button.owl-next:hover {
+    transform: translateX(3px);
+}
+
+.owl-carousel .owl-nav button.owl-prev {
+    background: #CA0100 !important;
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    color: #fff !important;
+    left: -35px;
+    top: 35%;
+    transition: all .3s ease;
+    border-radius: 200px;
+}
+
+.owl-carousel .owl-nav button.owl-prev span {
+    font-size: 20px;
+}
+
+.owl-carousel .owl-nav button.owl-next {
+    background: #CA0100 !important;
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    color: #fff !important;
+    right: -35px;
+    top: 35%;
+    transition: all .3s ease;
+    border-radius: 200px;
+}
+
+.owl-carousel .owl-nav button.owl-next span {
+    font-size: 20px;
+}
+
+#date,
+#date-brands {
+    transition: all .5s ease;
+}
+
+.none-view {
+    display: none;
+}
+
+.block-view {
+    display: block;
+}
+
+.filtroSlide {
+    margin-top: 50px;
+}
+
+#vagonetas {
+    display: block;
+}
+
+#automoviles,
+#utilitarios {
+    display: none;
+}
+
+#vagonetas,
+#automoviles,
+#utilitarios {
+    transition: all .5s ease;
+}
+
+#automoviles:hover,
+#vagonetas:hover,
+#utilitarios:hover {
+    cursor: grabbing;
+}
+
+.card-content {
+    transition: .2s;
+    font-size: 16px;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, .2);
+    margin: 10px;
+    border-radius: 10px;
+    border-radius: 50px 0px 50px 50px;
+    overflow: hidden;
+}
+
+.menu-models .filtroSlide {
+    width: 100%;
+    overflow: scroll;
+}
+
+.menu-models .filtroSlide .filtros {
+    width: max-content;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.filtrar {
+    display: inline-block;
+    color: #213a54;
+    padding: .8em;
+    text-align: center;
+    font-size: .8em;
+    text-transform: uppercase;
+    background: #ececec;
+    margin-right: 1em;
+    font-weight: bold;
+    letter-spacing: .9px;
+    cursor: pointer;
+    transition: all .7s ease;
+    border-radius: 30px 0 30px 30px;
+}
+
+.filtrar:hover {
+    color: #333;
+    box-shadow: 0px 0px 0px 3px #CA0100 !important;
+}
+
+.marcado {
+    transition: all .5s ease;
+    color: #333;
+    box-shadow: 0px 0px 0px 3px #CA0100 !important;
+}
+
+.logoversion {
+    float: right;
+}
+
+
+/*Ocultado temporalmente*/
+
+.card-header__text {
+    float: left;
+    padding-top: 37px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #414042;
+    display: none;
+}
+
+.boton-general {
+    background-color: #CA0100;
+    padding: .55em;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .3s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.boton-general:hover {
+    color: #fff !important;
+}
+
+img.logo-versiones {
+    width: 80px !important;
+    margin: 0 auto;
+    display: block;
+    padding-top:1em;
+}
+
+.foto-modelo {
+    width: 100%;
+    margin: 0 auto;
+    display: block;
+    padding: 0 20px;
+}
+
+.imagen-referencial {
+    display: none;
+}
+
+.card-header__text {
+    width: 40% !important;
+    float: left;
+    text-align: center;
+}
+
+.card-header__icon {
+    padding: 0 1em 0 0;
+}
+
+
+.hide {
+    display: none !important;
+}
+
+
+/* .foto-modelo {
+            transition: all .3s ease;
+        }
+
+        .foto-modelo:hover {
+            transform: scale(0.90);
+        }*/
+
+.titulo-modelo {
+    text-align: center;
+    margin: 30px auto;
+    width: 90%;
+    font-size: 16px;
+    font-weight: normal;
+    text-transform: uppercase;
+    color: #333;
+    font-weight: 600;
+}
+
+.owl-theme .owl-dots .owl-dot.active span {
+    background-color: #CA0100;
+}
+
+.owl-theme .owl-dots .owl-dot span:hover {
+    background-color: #CA0100;
+}
+
+.owl-carousel button.owl-dot {
+    outline: none;
+}
+
+#idFiltros {
+    margin-bottom: 2em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#top-bar,
+.page-header {
+    display: none;
+}
+
+#site-header,
+#top-bar-wrap {
+    border: none !important
+}
+
+.owl-carousel .owl-stage {
+    margin: auto;
+}
+
+@media(max-width:480px) and (min-width:300px) {
+    .filtrar {
+        width: 28.5% !important;
+    }
+    .owl-carousel .owl-nav button.owl-prev {
+        left: -10px;
+        width: 40px;
+        height: 40px;
+    }
+    .owl-carousel .owl-nav button.owl-next {
+        right: -10px;
+        width: 40px;
+        height: 40px;
+    }
+    .span-formulario {
+        width: 100%;
+    }
+    .filtros {
+        display: flex;
+        width: 100%;
+        font-size: 12px;
+        justify-content: center;
+    }
+}
