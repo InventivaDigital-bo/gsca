@@ -13,7 +13,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-P6TQ7C2');</script>
 <!-- End Google Tag Manager -->
-    <title>Chery Bolivia</title>
+    <title>GSCABolivia Bolivia</title>
 
     @yield('css')
 
@@ -111,10 +111,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="top">
                 <div class="border"></div>
                 <div class="content">
-                    <a href="{{route('concesionario')}}" class="buttom">
-                        <img src="/assets/img/icon/i_concessionaire.png" alt="i_concessionaire">
-                        <p>Concesionarios</p>
-                    </a>
+{{--                    <a href="{{route('concesionario')}}" class="buttom">--}}
+{{--                        <img src="/assets/img/icon/i_concessionaire.png" alt="i_concessionaire">--}}
+{{--                        <p>Concesionarios</p>--}}
+{{--                    </a>--}}
                     <a href="{{route('servicio')}}" class="buttom">
                         <img src="/assets/img/icon/i_service.png" alt="i_service">
                         <p>Servicio Técnico</p>
@@ -125,32 +125,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <a href="{{route('index')}}" class="button">
                     <p>INICIO</p>
                 </a>
-                <a href="{{route('chery')}}" class="button">
-                    <p>POR QUÉ CHERY</p>
-                </a>
+{{--                <a href="{{route('chery')}}" class="button">--}}
+{{--                    <p>POR QUÉ CHERY</p>--}}
+{{--                </a>--}}
                 <li class="button active">
                     <p>MODELOS</p>
                     <ul>
                         <!--<li><a href="{{route('modelo', 'tiggo-2-confort')}}">TIGGO 2 CONFORT</a></li>
                         <li><a href="{{route('modelo', 'tiggo-2-pro')}}">TIGGO 2 PRO</a></li>
                         <li><a href="{{route('modelo', 'tiggo-4-20-pro')}}">TIGGO 4 PRO 2.0</a></li>-->
-                       <li><a href="{{route('modelo', 'tiggo-2-pro')}}"> TIGGO 2 PRO</a></li>
+{{--                       <li><a href="{{route('modelo', 'tiggo-2-pro')}}"> TIGGO 2 PRO</a></li>--}}
                         <li><a href="{{route('modelo', 'tiggo-2-premium')}}">TIGGO 2 PREMIUM</a></li>
-                        <li><a href="{{route('modelo', 'new-tiggo-4-15')}}">NEW TIGGO 4 PRO 1.5</a></li>
-                        <li><a href="{{route('modelo', 'new-tiggo-4-20')}}">NEW TIGGO 4 PRO 2.0</a></li>
+                        <li><a href="{{route('modelo', 'new-tiggo-4-15')}}">NEW TIGGO 4 1.5</a></li>
+                        <li><a href="{{route('modelo', 'new-tiggo-4-20')}}">NEW TIGGO 4 2.0</a></li>
                         <li><a href="{{route('modelo', 'tiggo-7-pro')}}">TIGGO 7 PRO</a></li>
                     </ul>
                 </li>
-                <a href="{{route('experiencia')}}" class="button">
-                    <p>EXPERIENCIA CHERY</p>
-                </a>
+{{--                <a href="{{route('experiencia')}}" class="button">--}}
+{{--                    <p>EXPERIENCIA CHERY</p>--}}
+{{--                </a>--}}
                 <a href="{{route('contacto')}}" class="button">
                     <p>CONTACTO</p>
 
                 </a>
-                <a href="{{route('tour', 'show-room')}}" class="button">
-                    <p>TOUR VIRTUAL</p>
-                </a>
+{{--                <a href="{{route('tour', 'show-room')}}" class="button">--}}
+{{--                    <p>TOUR VIRTUAL</p>--}}
+{{--                </a>--}}
             </div>
         </div>
     </header>

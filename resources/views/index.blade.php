@@ -53,12 +53,11 @@
     <div class="image"><img src="{{asset('assets/img/auto.jpg')}}" alt=""></div>
     <div class="content">
         <h2>Quiénes somos</h2>
-        <p style="line-height : 25px;">GS Consorcio Automotriz SRL, es la empresa distribuidora
-            de Chery para Bolivia, la cual ha logrado en poco tiempo expandir
+        <p style="line-height : 25px;">GS Consorcio Automotriz SR, la cual ha logrado en poco tiempo expandir
             la marca a varios departamentos del país por nuestros
             diseños, el mejor precio del mercado, la excelente atención
             al cliente y servicios de taller especializado con stock amplio
-            de repuestos originales, Chery continuará expandiéndose
+            de repuestos originales, continuaremos expandiéndonos
             para llegar a cada rincón de Bolivia.</p>
     </div>
 </section>

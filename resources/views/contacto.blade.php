@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./assets/css/header.css">
     <link rel="stylesheet" href="./assets/css/contacto.css">
-    <title>Chery Bolivia</title>
+    <title>GSCABolivia  Bolivia</title>
 </head>
 <body>
     @include('layouts.components.header')
@@ -14,8 +14,8 @@
         <section class="cabecera">
             <div class="title"><h2>Para más información de nuestros <br><span>productos y servicios</span></h2></div>
             <ul class="redes">
-                <li><a href="#"><img src="assets/img/contacto/i_face.png" alt=""><p>@CheryBol</p></a></li>
-                <li><a href="#"><img src="assets/img/contacto/i_instagram.png" alt=""><p>@CheryBol</p></a></li>
+                <li><a href="#"><img src="assets/img/contacto/i_face.png" alt=""><p>@GSCABolivia </p></a></li>
+                <li><a href="#"><img src="assets/img/contacto/i_instagram.png" alt=""><p>@GSCABolivia </p></a></li>
                 <li><a href="#"><img src="assets/img/contacto/i_mail.png" alt=""><p>informaciones@gsca.com.bo</p></a></li>
                 <li><a href="#"><img src="assets/img/contacto/i_wpp.png" alt=""><p>(591) 67701700</p></a></li>
             </ul>

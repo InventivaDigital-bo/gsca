@@ -100,35 +100,35 @@
             <a href="{{route('index')}}" class="button {{ Request::is('/') ? 'active' : '' }}">
                 <p>INICIO</p>
             </a>
-            <a href="{{route('chery')}}" class="button {{ url()->current() == route('chery') ? 'active' : '' }}">
-                <p>POR QUÉ CHERY</p>
-            </a>
+{{--            <a href="{{route('chery')}}" class="button {{ url()->current() == route('chery') ? 'active' : '' }}">--}}
+{{--                <p>POR QUÉ CHERY</p>--}}
+{{--            </a>--}}
             <li class="button {{ strpos(url()->current(), 'modelo/') !== false ? 'active' : '' }}">
                 <p>MODELOS</p>
                 <ul>
                     <!--<li><a href="{{route('modelo', 'tiggo-2-confort')}}">TIGGO 2 CONFORT</a></li>
                     <li><a href="{{route('modelo', 'tiggo-2-pro')}}">TIGGO 2 PRO</a></li>
                     <li><a href="{{route('modelo', 'tiggo-4-20-pro')}}">TIGGO 4 PRO 2.0</a></li>-->
-                    <li><a href="{{route('modelo', 'tiggo-2-pro')}}"> TIGGO 2 PRO</a></li>
+{{--                    <li><a href="{{route('modelo', 'tiggo-2-pro')}}"> TIGGO 2 PRO</a></li>--}}
                     <li><a href="{{route('modelo', 'tiggo-2-premium')}}">TIGGO 2 PREMIUM</a></li>
-                    <li><a href="{{route('modelo', 'new-tiggo-4-15')}}">NEW TIGGO 4 PRO 1.5</a></li>
-                    <li><a href="{{route('modelo', 'new-tiggo-4-20')}}">NEW TIGGO 4 PRO 2.0</a></li>
+                    <li><a href="{{route('modelo', 'new-tiggo-4-15')}}">NEW TIGGO 4 1.5</a></li>
+                    <li><a href="{{route('modelo', 'new-tiggo-4-20')}}">NEW TIGGO 4 2.0</a></li>
                     <li><a href="{{route('modelo', 'tiggo-7-pro')}}">TIGGO 7 PRO</a></li>
                 </ul>
             </li>
-            <a href="{{route('experiencia')}}" class="button {{ url()->current() == route('experiencia') ? 'active' : '' }}">
-                <p>EXPERIENCIA CHERY</p>
-            </a>
+{{--            <a href="{{route('experiencia')}}" class="button {{ url()->current() == route('experiencia') ? 'active' : '' }}">--}}
+{{--                <p>EXPERIENCIA CHERY</p>--}}
+{{--            </a>--}}
             <a href="{{route('contacto')}}" class="button {{ url()->current() == route('contacto') ? 'active' : '' }}">
                 <p>CONTACTO</p>
 
             </a>
-            <a href="{{route('tour', 'show-room')}}" class="button">
-                <p>TOUR VIRTUAL</p>
-            </a>
+{{--            <a href="{{route('tour', 'show-room')}}" class="button">--}}
+{{--                <p>TOUR VIRTUAL</p>--}}
+{{--            </a>--}}
         </div>
     </div>
-    
+
     <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115068047-1"></script>
 <script>
